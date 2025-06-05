@@ -1,0 +1,15 @@
+{
+  "watch": [
+    "server.js",
+    "public/"
+  ],
+  "ext": "js,html,css,json",
+  "ignore": [
+    "node_modules/",
+    "uploads/"
+  ],
+  "delay": "1000",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

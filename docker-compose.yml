@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  fontawesome-customizer:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./uploads:/app/uploads
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
+    restart: unless-stopped
