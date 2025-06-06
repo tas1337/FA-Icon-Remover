@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Font Awesome Customizer</title>
+    <!-- Load Font Awesome for icon previews -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Load search configuration -->
+    <script src="search-config.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .upload-section {
+            text-align: center;
+            padding: 40px;
+            border: 3px dashed #ddd;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: #e8f0fe;
+            transform: scale(1.02);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin: 30px 0;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .search-container {
+            flex: 1;
+            min-width: 300px;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            margin-bottom: 5px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            font-size: 0.9rem;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .search-help {
+            color: #666;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .bulk-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.9;
+        }
+
+        .icons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .icon-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .icon-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .icon-item.selected {
+            border-color: #28a745;
+            background: #f8fff9;
+        }
+
+        .icon-checkbox {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .icon-preview {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0f0f0;
+            border-radius: 6px;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .icon-preview i {
+            font-size: 16px;
+        }
+
+        .icon-name {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #444;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .download-section {
+            text-align: center;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-container {
+                min-width: auto;
+            }
+
+            .icons-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .bulk-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎨 Font Awesome Customizer</h1>
+            <p>Upload your Font Awesome JS file, select the icons you need, and download a custom optimized version</p>
+        </div>
+
+        <div class="content">
+            <div id="uploadSection" class="upload-section">
+                <h3>📁 Upload Font Awesome JS File</h3>
+                <p style="margin: 15px 0; color: #666;">Drag and drop your Font Awesome JS file here, or click to browse</p>
+                <input type="file" id="fileInput" class="file-input" accept=".js" />
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+            </div>
+
+            <div id="loadingSection" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Parsing Font Awesome file...</p>
+            </div>
+
+            <div id="iconsSection" class="hidden">
+                <div class="stats">
+                    <div class="stat">
+                        <div class="stat-number" id="totalIcons">0</div>
+                        <div class="stat-label">Total Icons</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="selectedIcons">0</div>
+                        <div class="stat-label">Selected</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-number" id="estimatedSavings">0%</div>
+                        <div class="stat-label">Est. Size Reduction</div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="search-container">
+                        <input type="text" id="searchBox" class="search-box" placeholder="🔍 Try: bank, phone, arrow, home, money, user..." />
+                        <div class="search-suggestions" id="searchSuggestions"></div>
+                        <div class="search-help">
+                            <small>💡 Smart search: "bank" finds university, building-columns, piggy-bank, etc.</small>
+                        </div>
+                    </div>
+                    <div class="bulk-actions">
+                        <button class="btn btn-primary" onclick="selectAll()">Select All</button>
+                        <button class="btn btn-secondary" onclick="selectNone()">Select None</button>
+                        <button class="btn btn-primary" onclick="selectVisible()">Select Visible</button>
+                        <button class="btn btn-success" onclick="generateCustomFile()">Generate Custom File</button>
+                    </div>
+                </div>
+
+                <div id="iconsGrid" class="icons-grid"></div>
+
+                <div id="downloadSection" class="download-section hidden">
+                    <h3>✅ Custom Font Awesome Generated!</h3>
+                    <p style="margin: 15px 0;">Your optimized Font Awesome file is ready for download.</p>
+                    <button class="btn btn-success" onclick="downloadCustomFile()" style="font-size: 1.1rem; padding: 15px 30px;">
+                        📥 Download Custom File
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allIcons = [];
+        let selectedIconsSet = new Set();
+        let originalContent = '';
+        let customContent = '';
+        let currentFilteredIcons = [];
+
+        // File upload handling
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+
+        // Drag and drop
+        uploadSection.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadSection.classList.add('dragover');
+        });
+
+        uploadSection.addEventListener('dragleave', () => {
+            uploadSection.classList.remove('dragover');
+        });
+
+        uploadSection.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadSection.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileUpload(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileUpload(e.target.files[0]);
+            }
+        });
+
+        async function handleFileUpload(file) {
+            if (!file.name.endsWith('.js')) {
+                alert('Please upload a JavaScript (.js) file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('faFile', file);
+
+            showLoading();
+
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                allIcons = result.icons;
+                originalContent = result.originalContent;
+                selectedIconsSet.clear();
+                currentFilteredIcons = allIcons;
+
+                hideLoading();
+                showIcons();
+                
+            } catch (error) {
+                console.error('Upload error:', error);
+                alert('Error uploading file: ' + error.message);
+                hideLoading();
+            }
+        }
+
+        function showLoading() {
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('loadingSection').classList.remove('hidden');
+            document.getElementById('iconsSection').classList.add('hidden');
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingSection').classList.add('hidden');
+        }
+
+        function showIcons() {
+            document.getElementById('iconsSection').classList.remove('hidden');
+            renderIcons(allIcons);
+            updateStats();
+            setupSearch();
+        }
+
+        function renderIcons(filteredIcons = allIcons) {
+            const grid = document.getElementById('iconsGrid');
+            grid.innerHTML = '';
+
+            filteredIcons.forEach(icon => {
+                const iconItem = document.createElement('div');
+                iconItem.className = `icon-item ${selectedIconsSet.has(icon.name) ? 'selected' : ''}`;
+                
+                // Try to show the actual icon, fallback to unicode or placeholder
+                let iconPreview = `<i class="fas fa-${icon.displayName}" title="Unicode: ${icon.unicode}"></i>`;
+                
+                // If icon doesn't exist in Font Awesome, show unicode or placeholder
+                if (!doesIconExist(icon.displayName)) {
+                    if (icon.unicode) {
+                        iconPreview = `<span title="Unicode: ${icon.unicode}" style="font-family: FontAwesome;">&#x${icon.unicode};</span>`;
+                    } else {
+                        iconPreview = `<span class="placeholder" title="${icon.displayName}">?</span>`;
+                    }
+                }
+                
+                iconItem.innerHTML = `
+                    <input type="checkbox" class="icon-checkbox" ${selectedIconsSet.has(icon.name) ? 'checked' : ''} 
+                           onchange="toggleIcon('${icon.name}')">
+                    <div class="icon-preview">
+                        ${iconPreview}
+                    </div>
+                    <span class="icon-name">${icon.displayName}</span>
+                `;
+                
+                iconItem.addEventListener('click', (e) => {
+                    if (e.target.type !== 'checkbox') {
+                        toggleIcon(icon.name);
+                        const checkbox = iconItem.querySelector('.icon-checkbox');
+                        checkbox.checked = selectedIconsSet.has(icon.name);
+                        iconItem.classList.toggle('selected', selectedIconsSet.has(icon.name));
+                    }
+                });
+
+                grid.appendChild(iconItem);
+            });
+        }
+
+        function toggleIcon(iconName) {
+            if (selectedIconsSet.has(iconName)) {
+                selectedIconsSet.delete(iconName);
+            } else {
+                selectedIconsSet.add(iconName);
+            }
+            updateStats();
+        }
+
+        function updateStats() {
+            const searchQuery = document.getElementById('searchBox').value.trim();
+            
+            if (searchQuery && currentFilteredIcons.length !== allIcons.length) {
+                document.getElementById('totalIcons').textContent = `${currentFilteredIcons.length} / ${allIcons.length}`;
+            } else {
+                document.getElementById('totalIcons').textContent = allIcons.length;
+            }
+            
+            document.getElementById('selectedIcons').textContent = selectedIconsSet.size;
+            
+            const savings = allIcons.length > 0 ? Math.round((1 - selectedIconsSet.size / allIcons.length) * 100) : 0;
+            document.getElementById('estimatedSavings').textContent = savings + '%';
+        }
+
+        function setupSearch() {
+            const searchBox = document.getElementById('searchBox');
+            const suggestionsDiv = document.getElementById('searchSuggestions');
+            
+            let searchTimeout;
+            
+            function performSearch() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const query = searchBox.value.toLowerCase().trim();
+                    
+                    if (!query) {
+                        currentFilteredIcons = allIcons;
+                        hideSuggestions();
+                    } else {
+                        // Use semantic search from search-config.js
+                        currentFilteredIcons = searchIconsBySemantic(query, allIcons);
+                        showSuggestions(query);
+                    }
+                    
+                    renderIcons(currentFilteredIcons);
+                    updateStats();
+                }, 200);
+            }
+            
+            function showSuggestions(query) {
+                if (query.length < 2) {
+                    hideSuggestions();
+                    return;
+                }
+                
+                const suggestions = getSearchSuggestions(query);
+                
+                if (suggestions.length > 0) {
+                    suggestionsDiv.innerHTML = suggestions.map(suggestion => 
+                        `<div class="suggestion-item" onclick="applySuggestion('${suggestion}')">${suggestion}</div>`
+                    ).join('');
+                    suggestionsDiv.style.display = 'block';
+                } else {
+                    hideSuggestions();
+                }
+            }
+            
+            function hideSuggestions() {
+                suggestionsDiv.style.display = 'none';
+            }
+            
+            // Event listeners
+            searchBox.addEventListener('input', performSearch);
+            searchBox.addEventListener('focus', () => {
+                if (searchBox.value.trim().length >= 2) {
+                    showSuggestions(searchBox.value.trim());
+                }
+            });
+            
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!searchBox.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                    hideSuggestions();
+                }
+            });
+        }
+        
+        function applySuggestion(suggestion) {
+            const searchBox = document.getElementById('searchBox');
+            searchBox.value = suggestion;
+            
+            // Trigger search
+            currentFilteredIcons = searchIconsBySemantic(suggestion, allIcons);
+            renderIcons(currentFilteredIcons);
+            updateStats();
+            
+            // Hide suggestions
+            document.getElementById('searchSuggestions').style.display = 'none';
+        }
+
+        function selectAll() {
+            currentFilteredIcons.forEach(icon => selectedIconsSet.add(icon.name));
+            renderIcons(currentFilteredIcons);
+            updateStats();
+        }
+
+        function selectNone() {
+            selectedIconsSet.clear();
+            renderIcons(currentFilteredIcons);
+            updateStats();
+        }
+        
+        function selectVisible() {
+            currentFilteredIcons.forEach(icon => selectedIconsSet.add(icon.name));
+            renderIcons(currentFilteredIcons);
+            updateStats();
+        }
+
+        async function generateCustomFile() {
+            if (selectedIconsSet.size === 0) {
+                alert('Please select at least one icon');
+                return;
+            }
+
+            const selectedIcons = allIcons.filter(icon => selectedIconsSet.has(icon.name));
+            console.log('Generating custom file with selected icons:', selectedIcons.map(i => i.name));
+
+            try {
+                // Show loading state
+                const generateBtn = document.querySelector('button[onclick="generateCustomFile()"]');
+                const originalText = generateBtn.textContent;
+                generateBtn.textContent = 'Generating...';
+                generateBtn.disabled = true;
+
+                const response = await fetch('/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        originalContent: originalContent,
+                        selectedIcons: selectedIcons
+                    })
+                });
+
+                console.log('Response status:', response.status);
+                const result = await response.json();
+                console.log('Response result:', result);
+                
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                customContent = result.content;
+                document.getElementById('downloadSection').classList.remove('hidden');
+                
+                // Scroll to download section
+                document.getElementById('downloadSection').scrollIntoView({ behavior: 'smooth' });
+                
+                // Reset button
+                generateBtn.textContent = originalText;
+                generateBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('Generation error:', error);
+                alert('Error generating custom file: ' + error.message);
+                
+                // Reset button
+                const generateBtn = document.querySelector('button[onclick="generateCustomFile()"]');
+                generateBtn.textContent = 'Generate Custom File';
+                generateBtn.disabled = false;
+            }
+        }
+
+        function downloadCustomFile() {
+            const blob = new Blob([customContent], { type: 'application/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'fontawesome-custom.js';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Helper function to check if an icon exists in the loaded Font Awesome
+        function doesIconExist(iconName) {
+            // Create a temporary element to test if the icon exists
+            const testEl = document.createElement('i');
+            testEl.className = `fas fa-${iconName}`;
+            testEl.style.position = 'absolute';
+            testEl.style.visibility = 'hidden';
+            document.body.appendChild(testEl);
+            
+            const computedStyle = window.getComputedStyle(testEl, '::before');
+            const content = computedStyle.getPropertyValue('content');
+            
+            document.body.removeChild(testEl);
+            
+            // If content is not 'none' or empty, the icon exists
+            return content && content !== 'none' && content !== '""';
+        }
+    </script>
+</body>
+</html>
