@@ -23,6 +23,12 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Serve search-config.js explicitly
+app.get('/search-config.js', (req, res) => {
+  res.setHeader('Content-Type', 'application/javascript');
+  res.sendFile(path.join(__dirname, 'public', 'search-config.js'));
+});
+
 // Upload and parse Font Awesome file
 app.post('/upload', upload.single('faFile'), (req, res) => {
   try {
@@ -123,18 +129,28 @@ function generateCustomFontAwesome(originalContent, selectedIcons) {
   let customContent = originalContent;
   
   const selectedNames = selectedIcons.map(icon => icon.name);
-  console.log(`Generating custom file with ${selectedNames.length} selected icons`);
+  console.log(`Generating custom file with ${selectedNames.length} selected icons:`, selectedNames.slice(0, 10));
   
   // Font Awesome 6.x format: Remove icon definitions that aren't selected
   // Pattern: "iconName": [width, height, aliases, unicode, svgPath],
   const fa6IconPattern = /"([a-z0-9-]+)":\s*\[\s*\d+,\s*\d+,\s*(?:\[[^\]]*\]|\[\]),\s*"[^"]+",\s*"[^"]*"\s*\],?/g;
   
+  let removedCount = 0;
+  let keptCount = 0;
+  
   customContent = customContent.replace(fa6IconPattern, (match, iconName) => {
     if (selectedNames.includes(iconName)) {
+      console.log(`Keeping icon: ${iconName}`);
+      keptCount++;
       return match; // Keep this icon
+    } else {
+      console.log(`Removing icon: ${iconName}`);
+      removedCount++;
+      return ''; // Remove this icon
     }
-    return ''; // Remove this icon
   });
+  
+  console.log(`Icon processing complete: kept ${keptCount}, removed ${removedCount}`);
   
   // Clean up formatting issues from removals
   customContent = customContent.replace(/,\s*,/g, ','); // Remove double commas
@@ -147,6 +163,10 @@ function generateCustomFontAwesome(originalContent, selectedIcons) {
   customContent = customContent.replace(/var\s+icons\s*=\s*{\s*};?/g, 'var icons = {};');
   
   console.log('Custom Font Awesome file generated successfully');
+  console.log('Original size:', originalContent.length, 'bytes');
+  console.log('Custom size:', customContent.length, 'bytes');
+  console.log('Size reduction:', Math.round((1 - customContent.length/originalContent.length) * 100) + '%');
+  
   return customContent;
 }
 
