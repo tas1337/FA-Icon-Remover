@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Font Awesome Customizer</title>
-    <!-- Load Font Awesome for icon previews -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- Load search configuration -->
     <script src="search-config.js"></script>
     <style>
@@ -263,14 +261,28 @@
             color: #333;
         }
 
-        .icon-preview i {
-            font-size: 16px;
+        .icon-preview svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        .icon-preview .unicode-display {
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .icon-preview .placeholder {
+            font-size: 12px;
+            color: #999;
         }
 
         .icon-name {
             font-family: 'Courier New', monospace;
             font-size: 0.9rem;
             color: #444;
+            flex: 1;
         }
 
         .loading {
@@ -462,6 +474,9 @@
                 selectedIconsSet.clear();
                 currentFilteredIcons = allIcons;
 
+                console.log('Loaded icons:', allIcons.length);
+                console.log('Sample icon:', allIcons[0]);
+
                 hideLoading();
                 showIcons();
                 
@@ -489,6 +504,21 @@
             setupSearch();
         }
 
+        function createIconSVG(icon) {
+            if (icon.svgPath && icon.svgPath.trim()) {
+                // Create SVG element with the extracted path
+                return `<svg viewBox="0 0 ${icon.width || 512} ${icon.height || 512}" xmlns="http://www.w3.org/2000/svg">
+                    <path d="${icon.svgPath}"/>
+                </svg>`;
+            } else if (icon.unicode) {
+                // Fallback to unicode display
+                return `<span class="unicode-display" title="Unicode: ${icon.unicode}">&#x${icon.unicode};</span>`;
+            } else {
+                // Fallback placeholder
+                return `<span class="placeholder" title="${icon.displayName}">?</span>`;
+            }
+        }
+
         function renderIcons(filteredIcons = allIcons) {
             const grid = document.getElementById('iconsGrid');
             grid.innerHTML = '';
@@ -497,17 +527,7 @@
                 const iconItem = document.createElement('div');
                 iconItem.className = `icon-item ${selectedIconsSet.has(icon.name) ? 'selected' : ''}`;
                 
-                // Try to show the actual icon, fallback to unicode or placeholder
-                let iconPreview = `<i class="fas fa-${icon.displayName}" title="Unicode: ${icon.unicode}"></i>`;
-                
-                // If icon doesn't exist in Font Awesome, show unicode or placeholder
-                if (!doesIconExist(icon.displayName)) {
-                    if (icon.unicode) {
-                        iconPreview = `<span title="Unicode: ${icon.unicode}" style="font-family: FontAwesome;">&#x${icon.unicode};</span>`;
-                    } else {
-                        iconPreview = `<span class="placeholder" title="${icon.displayName}">?</span>`;
-                    }
-                }
+                const iconPreview = createIconSVG(icon);
                 
                 iconItem.innerHTML = `
                     <input type="checkbox" class="icon-checkbox" ${selectedIconsSet.has(icon.name) ? 'checked' : ''} 
@@ -715,24 +735,6 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        }
-
-        // Helper function to check if an icon exists in the loaded Font Awesome
-        function doesIconExist(iconName) {
-            // Create a temporary element to test if the icon exists
-            const testEl = document.createElement('i');
-            testEl.className = `fas fa-${iconName}`;
-            testEl.style.position = 'absolute';
-            testEl.style.visibility = 'hidden';
-            document.body.appendChild(testEl);
-            
-            const computedStyle = window.getComputedStyle(testEl, '::before');
-            const content = computedStyle.getPropertyValue('content');
-            
-            document.body.removeChild(testEl);
-            
-            // If content is not 'none' or empty, the icon exists
-            return content && content !== 'none' && content !== '""';
         }
     </script>
 </body>

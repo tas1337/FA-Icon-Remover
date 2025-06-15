@@ -77,51 +77,75 @@ function parseIconsFromJS(content) {
   const icons = [];
   
   // Font Awesome 6.x format: "iconName": [width, height, aliases, unicode, svgPath]
-  const fa6Pattern = /"([a-z0-9-]+)":\s*\[\s*\d+,\s*\d+,\s*(?:\[[^\]]*\]|\[\]),\s*"([^"]+)",/g;
+  // Updated regex to capture width, height, unicode, and SVG path
+  const fa6Pattern = /"([a-z0-9-]+)":\s*\[\s*(\d+),\s*(\d+),\s*(?:\[[^\]]*\]|\[\]),\s*"([^"]+)",\s*"([^"]*)"\s*\]/g;
   
   let match;
   while ((match = fa6Pattern.exec(content)) !== null) {
     const iconName = match[1];
-    const unicode = match[2];
+    const width = parseInt(match[2]);
+    const height = parseInt(match[3]);
+    const unicode = match[4];
+    const svgPath = match[5];
     
     if (iconName && unicode && !icons.some(icon => icon.name === iconName)) {
       icons.push({
         name: iconName,
         unicode: unicode,
-        displayName: iconName
+        displayName: iconName,
+        width: width,
+        height: height,
+        svgPath: svgPath
       });
     }
   }
 
   // Fallback patterns for other FontAwesome formats
   if (icons.length === 0) {
-    const fallbackPatterns = [
-      // Pattern for fa-icon definitions with unicode
-      /["']([a-z0-9-]+)["']\s*:\s*{[^}]*unicode:\s*["']([^"']+)["'][^}]*}/g,
-      // Pattern for icon objects with iconName property
-      /iconName:\s*["']([a-z0-9-]+)["'][^}]*unicode:\s*["']([^"']+)["']/g,
-      // Generic object pattern
-      /["']([a-z][a-z0-9-]*[a-z0-9])["']\s*:\s*\[[^\]]*\]/g
-    ];
-
-    fallbackPatterns.forEach(pattern => {
-      let match;
-      while ((match = pattern.exec(content)) !== null) {
-        const iconName = match[1];
-        const unicode = match[2] || '';
-        
-        if (iconName && iconName.length > 2 && !icons.some(icon => icon.name === iconName)) {
-          icons.push({
-            name: iconName,
-            unicode: unicode,
-            displayName: iconName
-          });
-        }
+    console.log('Trying fallback patterns...');
+    
+    // Alternative pattern for different FA formats
+    const fallbackPattern1 = /"([a-z0-9-]+)":\s*\[\s*\d+,\s*\d+,\s*(?:\[[^\]]*\]|\[\]),\s*"([^"]+)"/g;
+    
+    while ((match = fallbackPattern1.exec(content)) !== null) {
+      const iconName = match[1];
+      const unicode = match[2];
+      
+      if (iconName && unicode && !icons.some(icon => icon.name === iconName)) {
+        icons.push({
+          name: iconName,
+          unicode: unicode,
+          displayName: iconName,
+          width: 512,
+          height: 512,
+          svgPath: '' // No SVG path available in this format
+        });
       }
-    });
+    }
+    
+    // Pattern for fa-icon definitions with unicode
+    const fallbackPattern2 = /["']([a-z0-9-]+)["']\s*:\s*{[^}]*unicode:\s*["']([^"']+)["'][^}]*}/g;
+    
+    while ((match = fallbackPattern2.exec(content)) !== null) {
+      const iconName = match[1];
+      const unicode = match[2];
+      
+      if (iconName && unicode && !icons.some(icon => icon.name === iconName)) {
+        icons.push({
+          name: iconName,
+          unicode: unicode,
+          displayName: iconName,
+          width: 512,
+          height: 512,
+          svgPath: ''
+        });
+      }
+    }
   }
 
   console.log(`Found ${icons.length} icons in Font Awesome file`);
+  console.log('Sample icons:', icons.slice(0, 3).map(i => ({name: i.name, hasSvg: !!i.svgPath})));
+  
   return icons.sort((a, b) => a.displayName.localeCompare(b.displayName));
 }
 
@@ -147,6 +171,19 @@ function generateCustomFontAwesome(originalContent, selectedIcons) {
       console.log(`Removing icon: ${iconName}`);
       removedCount++;
       return ''; // Remove this icon
+    }
+  });
+  
+  // Also handle the fallback pattern
+  const fallbackPattern = /"([a-z0-9-]+)":\s*\[\s*\d+,\s*\d+,\s*(?:\[[^\]]*\]|\[\]),\s*"[^"]+"\s*\],?/g;
+  
+  customContent = customContent.replace(fallbackPattern, (match, iconName) => {
+    if (selectedNames.includes(iconName)) {
+      keptCount++;
+      return match;
+    } else {
+      removedCount++;
+      return '';
     }
   });
   
