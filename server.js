@@ -43,11 +43,12 @@ app.post('/upload', upload.single('faFile'), (req, res) => {
     fs.unlinkSync(filePath);
 
     // Parse Font Awesome icons from the JS file
-    const icons = parseIconsFromJS(fileContent);
+    const parseResult = parseIconsFromJS(fileContent);
     
     res.json({ 
-      icons: icons,
-      originalContent: fileContent
+      icons: parseResult.icons,
+      originalContent: fileContent,
+      families: parseResult.families
     });
   } catch (error) {
     console.error('Error processing file:', error);
@@ -75,129 +76,167 @@ app.post('/generate', (req, res) => {
 
 function parseIconsFromJS(content) {
   const icons = [];
+  const families = {};
   
-  // Font Awesome 6.x format: "iconName": [width, height, aliases, unicode, svgPath]
-  // Updated regex to capture width, height, unicode, and SVG path
-  const fa6Pattern = /"([a-z0-9-]+)":\s*\[\s*(\d+),\s*(\d+),\s*(?:\[[^\]]*\]|\[\]),\s*"([^"]+)",\s*"([^"]*)"\s*\]/g;
+  // More robust IIFE splitting - look for the complete IIFE pattern
+  const iifePattern = /\(function \(\) \{\s*'use strict';([\s\S]*?)\}\(\)\);/g;
+  let iifeMatch;
   
-  let match;
-  while ((match = fa6Pattern.exec(content)) !== null) {
-    const iconName = match[1];
-    const width = parseInt(match[2]);
-    const height = parseInt(match[3]);
-    const unicode = match[4];
-    const svgPath = match[5];
+  console.log('Starting to parse Font Awesome file...');
+  
+  while ((iifeMatch = iifePattern.exec(content)) !== null) {
+    const iifeContent = iifeMatch[1];
     
-    if (iconName && unicode && !icons.some(icon => icon.name === iconName)) {
-      icons.push({
-        name: iconName,
-        unicode: unicode,
-        displayName: iconName,
-        width: width,
-        height: height,
-        svgPath: svgPath
-      });
+    // Find the bunker call to determine family prefix
+    const bunkerMatch = iifeContent.match(/bunker\(\(\) => \{\s*defineIcons\('([^']+)'/);
+    if (!bunkerMatch) {
+      console.log('Skipping IIFE block without defineIcons call');
+      continue;
     }
-  }
-
-  // Fallback patterns for other FontAwesome formats
-  if (icons.length === 0) {
-    console.log('Trying fallback patterns...');
     
-    // Alternative pattern for different FA formats
-    const fallbackPattern1 = /"([a-z0-9-]+)":\s*\[\s*\d+,\s*\d+,\s*(?:\[[^\]]*\]|\[\]),\s*"([^"]+)"/g;
+    const familyPrefix = bunkerMatch[1];
+    console.log(`Processing family: ${familyPrefix}`);
     
-    while ((match = fallbackPattern1.exec(content)) !== null) {
+    // Extract icons object from this block
+    const iconsObjectMatch = iifeContent.match(/var icons = \{([\s\S]*?)\};/);
+    if (!iconsObjectMatch) {
+      console.log(`No icons object found in ${familyPrefix} family`);
+      families[familyPrefix] = [];
+      continue;
+    }
+    
+    const iconsContent = iconsObjectMatch[1].trim();
+    
+    if (!iconsContent || iconsContent === '') {
+      console.log(`Empty icons object in ${familyPrefix} family`);
+      families[familyPrefix] = [];
+      continue;
+    }
+    
+    // Parse individual icons in this family
+    const iconPattern = /"([a-z0-9-]+)":\s*\[\s*(\d+),\s*(\d+),\s*(?:\[[^\]]*\]|\[\]),\s*"([^"]+)",\s*"([^"]*)"\s*\]/g;
+    
+    let match;
+    const familyIcons = [];
+    
+    while ((match = iconPattern.exec(iconsContent)) !== null) {
       const iconName = match[1];
-      const unicode = match[2];
+      const width = parseInt(match[2]);
+      const height = parseInt(match[3]);
+      const unicode = match[4];
+      const svgPath = match[5];
       
-      if (iconName && unicode && !icons.some(icon => icon.name === iconName)) {
-        icons.push({
+      if (iconName && unicode) {
+        const iconData = {
           name: iconName,
           unicode: unicode,
-          displayName: iconName,
-          width: 512,
-          height: 512,
-          svgPath: '' // No SVG path available in this format
-        });
+          displayName: `${iconName} (${familyPrefix})`,
+          width: width,
+          height: height,
+          svgPath: svgPath,
+          family: familyPrefix,
+          fullDefinition: match[0]
+        };
+        
+        icons.push(iconData);
+        familyIcons.push(iconData);
       }
     }
     
-    // Pattern for fa-icon definitions with unicode
-    const fallbackPattern2 = /["']([a-z0-9-]+)["']\s*:\s*{[^}]*unicode:\s*["']([^"']+)["'][^}]*}/g;
-    
-    while ((match = fallbackPattern2.exec(content)) !== null) {
-      const iconName = match[1];
-      const unicode = match[2];
-      
-      if (iconName && unicode && !icons.some(icon => icon.name === iconName)) {
-        icons.push({
-          name: iconName,
-          unicode: unicode,
-          displayName: iconName,
-          width: 512,
-          height: 512,
-          svgPath: ''
-        });
-      }
-    }
+    families[familyPrefix] = familyIcons;
+    console.log(`Found ${familyIcons.length} icons in ${familyPrefix} family`);
   }
 
-  console.log(`Found ${icons.length} icons in Font Awesome file`);
-  console.log('Sample icons:', icons.slice(0, 3).map(i => ({name: i.name, hasSvg: !!i.svgPath})));
+  console.log(`Total found: ${icons.length} icons across ${Object.keys(families).length} families`);
+  console.log('Families:', Object.keys(families));
   
-  return icons.sort((a, b) => a.displayName.localeCompare(b.displayName));
+  return {
+    icons: icons.sort((a, b) => a.displayName.localeCompare(b.displayName)),
+    families: families
+  };
 }
 
 function generateCustomFontAwesome(originalContent, selectedIcons) {
-  let customContent = originalContent;
+  console.log(`Generating custom file with ${selectedIcons.length} selected icons`);
   
-  const selectedNames = selectedIcons.map(icon => icon.name);
-  console.log(`Generating custom file with ${selectedNames.length} selected icons:`, selectedNames.slice(0, 10));
-  
-  // Font Awesome 6.x format: Remove icon definitions that aren't selected
-  // Pattern: "iconName": [width, height, aliases, unicode, svgPath],
-  const fa6IconPattern = /"([a-z0-9-]+)":\s*\[\s*\d+,\s*\d+,\s*(?:\[[^\]]*\]|\[\]),\s*"[^"]+",\s*"[^"]*"\s*\],?/g;
-  
-  let removedCount = 0;
-  let keptCount = 0;
-  
-  customContent = customContent.replace(fa6IconPattern, (match, iconName) => {
-    if (selectedNames.includes(iconName)) {
-      console.log(`Keeping icon: ${iconName}`);
-      keptCount++;
-      return match; // Keep this icon
-    } else {
-      console.log(`Removing icon: ${iconName}`);
-      removedCount++;
-      return ''; // Remove this icon
+  // Group selected icons by family
+  const selectedByFamily = {};
+  selectedIcons.forEach(icon => {
+    if (!selectedByFamily[icon.family]) {
+      selectedByFamily[icon.family] = [];
     }
+    selectedByFamily[icon.family].push(icon);
   });
   
-  // Also handle the fallback pattern
-  const fallbackPattern = /"([a-z0-9-]+)":\s*\[\s*\d+,\s*\d+,\s*(?:\[[^\]]*\]|\[\]),\s*"[^"]+"\s*\],?/g;
+  console.log('Selected icons by family:', Object.keys(selectedByFamily).map(family => 
+    `${family}: ${selectedByFamily[family].length}`
+  ));
   
-  customContent = customContent.replace(fallbackPattern, (match, iconName) => {
-    if (selectedNames.includes(iconName)) {
-      keptCount++;
-      return match;
-    } else {
-      removedCount++;
-      return '';
+  // Use more precise IIFE pattern matching
+  const iifePattern = /(\(function \(\) \{\s*'use strict';)([\s\S]*?)(\}\(\)\);)/g;
+  let customContent = '';
+  let lastIndex = 0;
+  let match;
+  
+  // Process each IIFE block
+  while ((match = iifePattern.exec(originalContent)) !== null) {
+    // Add content before this IIFE (like header comments)
+    customContent += originalContent.substring(lastIndex, match.index);
+    
+    const iifeStart = match[1];
+    const iifeBody = match[2];
+    const iifeEnd = match[3];
+    
+    // Find which family this IIFE belongs to
+    const bunkerMatch = iifeBody.match(/bunker\(\(\) => \{\s*defineIcons\('([^']+)'/);
+    if (!bunkerMatch) {
+      // Keep non-icon IIFE blocks as-is (like the main framework code)
+      customContent += match[0];
+      lastIndex = match.index + match[0].length;
+      continue;
     }
-  });
+    
+    const familyPrefix = bunkerMatch[1];
+    console.log(`Processing IIFE for family: ${familyPrefix}`);
+    
+    const selectedForThisFamily = selectedByFamily[familyPrefix] || [];
+    
+    if (selectedForThisFamily.length === 0) {
+      console.log(`No icons selected for ${familyPrefix}, skipping entire IIFE`);
+      lastIndex = match.index + match[0].length;
+      continue; // Skip this entire IIFE block
+    }
+    
+    // Find and replace the icons object
+    const iconsObjectMatch = iifeBody.match(/([\s\S]*?)(var icons = \{)([\s\S]*?)(\};)([\s\S]*)/);
+    if (!iconsObjectMatch) {
+      console.log(`Could not find icons object in ${familyPrefix} family`);
+      customContent += match[0];
+      lastIndex = match.index + match[0].length;
+      continue;
+    }
+    
+    const beforeIcons = iconsObjectMatch[1];
+    const iconsDeclaration = iconsObjectMatch[2];
+    const iconsSuffix = iconsObjectMatch[4];
+    const afterIcons = iconsObjectMatch[5];
+    
+    // Build new icons content with selected icons
+    const newIconsContent = selectedForThisFamily.map(icon => {
+      return `    "${icon.name}": [${icon.width}, ${icon.height}, [], "${icon.unicode}", "${icon.svgPath}"]`;
+    }).join(',\n');
+    
+    // Reconstruct the IIFE with filtered icons
+    const newIifeBody = beforeIcons + iconsDeclaration + '\n' + newIconsContent + '\n  ' + iconsSuffix + afterIcons;
+    
+    customContent += iifeStart + newIifeBody + iifeEnd;
+    lastIndex = match.index + match[0].length;
+    
+    console.log(`Kept ${selectedForThisFamily.length} icons in ${familyPrefix} family`);
+  }
   
-  console.log(`Icon processing complete: kept ${keptCount}, removed ${removedCount}`);
-  
-  // Clean up formatting issues from removals
-  customContent = customContent.replace(/,\s*,/g, ','); // Remove double commas
-  customContent = customContent.replace(/{\s*,/g, '{'); // Remove leading commas in objects
-  customContent = customContent.replace(/,\s*}/g, '}'); // Remove trailing commas before closing braces
-  customContent = customContent.replace(/,\s*\]/g, ']'); // Remove trailing commas before closing arrays
-  customContent = customContent.replace(/:\s*,/g, ': '); // Clean up empty values
-  
-  // Remove any empty icon objects that might be left
-  customContent = customContent.replace(/var\s+icons\s*=\s*{\s*};?/g, 'var icons = {};');
+  // Add any remaining content after the last IIFE
+  customContent += originalContent.substring(lastIndex);
   
   console.log('Custom Font Awesome file generated successfully');
   console.log('Original size:', originalContent.length, 'bytes');
