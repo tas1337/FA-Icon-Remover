@@ -59,13 +59,15 @@ app.post('/upload', upload.single('faFile'), (req, res) => {
 // Generate custom Font Awesome file
 app.post('/generate', (req, res) => {
   try {
-    const { originalContent, selectedIcons } = req.body;
+    const { originalContent, selectedIcons, customIcons = [] } = req.body;
     
     if (!originalContent || !selectedIcons) {
       return res.status(400).json({ error: 'Missing required data' });
     }
 
-    const customContent = generateCustomFontAwesome(originalContent, selectedIcons);
+    console.log(`Received ${customIcons.length} custom icons to add`);
+    
+    const customContent = generateCustomFontAwesome(originalContent, selectedIcons, customIcons);
     
     res.json({ content: customContent });
   } catch (error) {
@@ -156,8 +158,8 @@ function parseIconsFromJS(content) {
   };
 }
 
-function generateCustomFontAwesome(originalContent, selectedIcons) {
-  console.log(`Generating custom file with ${selectedIcons.length} selected icons`);
+function generateCustomFontAwesome(originalContent, selectedIcons, customIcons = []) {
+  console.log(`Generating custom file with ${selectedIcons.length} selected icons and ${customIcons.length} custom icons`);
   
   // Group selected icons by family
   const selectedByFamily = {};
@@ -167,6 +169,27 @@ function generateCustomFontAwesome(originalContent, selectedIcons) {
     }
     selectedByFamily[icon.family].push(icon);
   });
+  
+  // Add custom icons to the 'fas' family
+  if (customIcons.length > 0) {
+    if (!selectedByFamily['fas']) {
+      selectedByFamily['fas'] = [];
+    }
+    
+    // Convert custom icons to the expected format
+    customIcons.forEach(customIcon => {
+      selectedByFamily['fas'].push({
+        name: customIcon.name,
+        width: customIcon.width,
+        height: customIcon.height,
+        unicode: customIcon.unicode,
+        svgPath: customIcon.svgPath,
+        family: 'fas'
+      });
+    });
+    
+    console.log(`Added ${customIcons.length} custom icons to fas family`);
+  }
   
   console.log('Selected icons by family:', Object.keys(selectedByFamily).map(family => 
     `${family}: ${selectedByFamily[family].length}`

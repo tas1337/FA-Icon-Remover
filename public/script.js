@@ -4,6 +4,7 @@ let originalContent = '';
 let customContent = '';
 let currentFilteredIcons = [];
 let iconFamilies = {};
+let customIcons = []; // Store custom icons separately
 
 // File upload handling
 const uploadSection = document.getElementById('uploadSection');
@@ -92,6 +93,19 @@ function showIcons() {
     renderIcons(allIcons);
     updateStats();
     setupSearch();
+    setupCustomIconUpload(); // Initialize custom icon upload
+}
+
+function downloadCustomFile() {
+    const blob = new Blob([customContent], { type: 'application/javascript' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'fontawesome-custom.js';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 
 function createIconSVG(icon) {
@@ -109,7 +123,11 @@ function createIconSVG(icon) {
     }
 }
 
-function getFamilyBadgeColor(family) {
+function getFamilyBadgeColor(family, isCustom = false) {
+    if (isCustom) {
+        return '#9c27b0'; // Purple for custom icons
+    }
+    
     const colors = {
         'fab': '#f39c12',  // brands - orange
         'fas': '#3498db',  // solid - blue
@@ -180,15 +198,20 @@ function renderIcons(filteredIcons = allIcons) {
             const iconPreview = createIconSVG(icon);
             
             // Create family badge
+            const isCustomIcon = icon.isCustom;
+            const badgeText = isCustomIcon ? 'CUSTOM' : icon.family;
+            const badgeColor = getFamilyBadgeColor(icon.family, isCustomIcon);
+            
             const familyBadge = `<span style="
-                background: ${getFamilyBadgeColor(icon.family)};
+                background: ${badgeColor};
                 color: white;
                 padding: 2px 6px;
                 border-radius: 8px;
                 font-size: 0.7rem;
                 margin-left: auto;
                 flex-shrink: 0;
-            ">${icon.family}</span>`;
+                font-weight: bold;
+            ">${badgeText}</span>`;
             
             iconItem.innerHTML = `
                 <input type="checkbox" class="icon-checkbox" ${selectedIconsSet.has(icon.name) ? 'checked' : ''} 
@@ -391,7 +414,8 @@ async function generateCustomFile() {
             },
             body: JSON.stringify({
                 originalContent: originalContent,
-                selectedIcons: selectedIcons
+                selectedIcons: selectedIcons,
+                customIcons: customIcons // Include custom icons
             })
         });
 
@@ -432,14 +456,304 @@ async function generateCustomFile() {
     }
 }
 
-function downloadCustomFile() {
-    const blob = new Blob([customContent], { type: 'application/javascript' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'fontawesome-custom.js';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+// Custom Icon Functions
+let currentUploadedSvg = null;
+
+function setupCustomIconUpload() {
+    const uploadArea = document.getElementById('svgUploadArea');
+    const fileInput = document.getElementById('svgFileInput');
+    
+    // Click to upload
+    uploadArea.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleSvgFile(e.target.files[0]);
+        }
+    });
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        if (files.length > 0 && files[0].name.toLowerCase().endsWith('.svg')) {
+            handleSvgFile(files[0]);
+        } else {
+            alert('Please upload an SVG file');
+        }
+    });
+}
+
+async function handleSvgFile(file) {
+    try {
+        const svgText = await file.text();
+        const parsedSvg = parseSvgFile(svgText);
+        
+        if (!parsedSvg) {
+            alert('Could not parse SVG file. Please check that it\'s a valid SVG.');
+            return;
+        }
+        
+        currentUploadedSvg = {
+            fileName: file.name,
+            ...parsedSvg
+        };
+        
+        showSvgPreview(currentUploadedSvg);
+    } catch (error) {
+        console.error('Error reading SVG file:', error);
+        alert('Error reading SVG file');
+    }
+}
+
+function parseSvgFile(svgText) {
+    try {
+        const parser = new DOMParser();
+        const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+        const svgElement = svgDoc.querySelector('svg');
+        
+        if (!svgElement) {
+            return null;
+        }
+        
+        // Get viewBox or width/height
+        const viewBox = svgElement.getAttribute('viewBox');
+        let width = 512, height = 512;
+        
+        if (viewBox) {
+            const values = viewBox.split(/\s+|,/);
+            if (values.length === 4) {
+                width = parseInt(values[2]) || 512;
+                height = parseInt(values[3]) || 512;
+            }
+        } else {
+            width = parseInt(svgElement.getAttribute('width')) || 512;
+            height = parseInt(svgElement.getAttribute('height')) || 512;
+        }
+        
+        // Extract path data - try to find path elements
+        const paths = svgElement.querySelectorAll('path');
+        let pathData = '';
+        
+        if (paths.length > 0) {
+            // Combine all path data
+            pathData = Array.from(paths)
+                .map(path => path.getAttribute('d'))
+                .filter(d => d)
+                .join(' ');
+        } else {
+            // Try to get entire SVG content as fallback
+            const innerSvg = svgElement.innerHTML;
+            if (innerSvg.includes('d=')) {
+                // Extract d attribute values
+                const dMatches = innerSvg.match(/d="([^"]+)"/g);
+                if (dMatches) {
+                    pathData = dMatches.map(match => match.replace(/d="([^"]+)"/, '$1')).join(' ');
+                }
+            }
+        }
+        
+        if (!pathData) {
+            // Last resort: try to convert other shapes to paths
+            pathData = convertSvgToPath(svgElement);
+        }
+        
+        return {
+            width,
+            height,
+            pathData: pathData.trim()
+        };
+    } catch (error) {
+        console.error('Error parsing SVG:', error);
+        return null;
+    }
+}
+
+function convertSvgToPath(svgElement) {
+    // Basic conversion for simple shapes - this is a simplified version
+    let pathData = '';
+    
+    // Handle rectangles
+    const rects = svgElement.querySelectorAll('rect');
+    rects.forEach(rect => {
+        const x = parseFloat(rect.getAttribute('x')) || 0;
+        const y = parseFloat(rect.getAttribute('y')) || 0;
+        const w = parseFloat(rect.getAttribute('width')) || 0;
+        const h = parseFloat(rect.getAttribute('height')) || 0;
+        pathData += `M${x},${y} L${x+w},${y} L${x+w},${y+h} L${x},${y+h} Z `;
+    });
+    
+    // Handle circles
+    const circles = svgElement.querySelectorAll('circle');
+    circles.forEach(circle => {
+        const cx = parseFloat(circle.getAttribute('cx')) || 0;
+        const cy = parseFloat(circle.getAttribute('cy')) || 0;
+        const r = parseFloat(circle.getAttribute('r')) || 0;
+        // Simple circle approximation
+        pathData += `M${cx-r},${cy} A${r},${r} 0 1,0 ${cx+r},${cy} A${r},${r} 0 1,0 ${cx-r},${cy} Z `;
+    });
+    
+    return pathData;
+}
+
+function showSvgPreview(svgData) {
+    // Show preview section
+    document.getElementById('svgPreviewSection').classList.remove('hidden');
+    
+    // Update preview
+    const previewSvg = document.querySelector('#iconPreviewLarge svg');
+    const pathElement = previewSvg.querySelector('path');
+    
+    previewSvg.setAttribute('viewBox', `0 0 ${svgData.width} ${svgData.height}`);
+    pathElement.setAttribute('d', svgData.pathData);
+    
+    // Update details
+    document.getElementById('fileName').textContent = svgData.fileName;
+    document.getElementById('iconSize').textContent = `${svgData.width} × ${svgData.height}`;
+    
+    // Generate suggested name from filename
+    const suggestedName = svgData.fileName
+        .toLowerCase()
+        .replace('.svg', '')
+        .replace(/[^a-z0-9]/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+    
+    document.getElementById('customIconName').value = suggestedName;
+}
+
+function cancelUpload() {
+    currentUploadedSvg = null;
+    document.getElementById('svgPreviewSection').classList.add('hidden');
+    document.getElementById('svgFileInput').value = '';
+    document.getElementById('customIconName').value = '';
+}
+
+function addUploadedIcon() {
+    if (!currentUploadedSvg) {
+        alert('No SVG file uploaded');
+        return;
+    }
+    
+    const name = document.getElementById('customIconName').value.trim();
+    
+    // Validate name
+    if (!name) {
+        alert('Please enter an icon name');
+        return;
+    }
+    
+    const nameError = validateIconName(name);
+    if (nameError) {
+        alert(nameError);
+        return;
+    }
+    
+    // Create custom icon object
+    const customIcon = {
+        name: name,
+        unicode: generateCustomUnicode(),
+        displayName: `${name} (fas - custom)`,
+        width: currentUploadedSvg.width,
+        height: currentUploadedSvg.height,
+        svgPath: currentUploadedSvg.pathData,
+        family: 'fas',
+        isCustom: true
+    };
+    
+    // Add to arrays
+    customIcons.push(customIcon);
+    allIcons.push(customIcon);
+    selectedIconsSet.add(customIcon.name);
+    
+    // Update families
+    if (!iconFamilies['fas']) {
+        iconFamilies['fas'] = [];
+    }
+    iconFamilies['fas'].push(customIcon);
+    
+    // Update filtered icons
+    updateFilteredIcons();
+    
+    // Re-render and update stats
+    renderIcons(currentFilteredIcons);
+    updateStats();
+    
+    // Hide preview and reset
+    cancelUpload();
+    
+    // Success message
+    alert(`Custom icon "${name}" added successfully!`);
+    
+    console.log('Added custom icon:', customIcon);
+}
+
+function updateFilteredIcons() {
+    const searchQuery = document.getElementById('searchBox').value.toLowerCase().trim();
+    
+    if (!searchQuery) {
+        currentFilteredIcons = allIcons;
+    } else {
+        if (typeof searchIconsBySemantic === 'function') {
+            currentFilteredIcons = searchIconsBySemantic(searchQuery, allIcons);
+        } else {
+            currentFilteredIcons = allIcons.filter(icon => 
+                icon.name.toLowerCase().includes(searchQuery) ||
+                icon.displayName.toLowerCase().includes(searchQuery)
+            );
+        }
+    }
+}
+
+function generateCustomUnicode() {
+    // Generate a unique unicode in the private use area (E000-F8FF)
+    const usedUnicodes = new Set([
+        ...allIcons.map(icon => icon.unicode),
+        ...customIcons.map(icon => icon.unicode)
+    ]);
+    
+    // Start from E000 and find the first available unicode
+    for (let i = 0xE000; i <= 0xF8FF; i++) {
+        const unicode = i.toString(16).toUpperCase();
+        if (!usedUnicodes.has(unicode)) {
+            return unicode;
+        }
+    }
+    
+    // Fallback to random if all are taken (unlikely)
+    return Math.floor(Math.random() * 0x1000 + 0xE000).toString(16).toUpperCase();
+}
+
+function validateIconName(name) {
+    // Check if name is valid (lowercase, numbers, hyphens only)
+    if (!/^[a-z0-9-]+$/.test(name)) {
+        return 'Icon name can only contain lowercase letters, numbers, and hyphens';
+    }
+    
+    // Check if name already exists
+    const existingNames = [
+        ...allIcons.map(icon => icon.name),
+        ...customIcons.map(icon => icon.name)
+    ];
+    
+    if (existingNames.includes(name)) {
+        return 'An icon with this name already exists';
+    }
+    
+    return null;
 }

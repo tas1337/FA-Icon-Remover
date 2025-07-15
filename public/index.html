@@ -62,6 +62,58 @@
                     </div>
                 </div>
 
+                <!-- Custom Icon Upload Section -->
+                <div class="custom-icon-section">
+                    <div class="custom-icon-header">
+                        <h3>🎨 Add Custom Icons</h3>
+                        <p>Upload SVG files to add them as custom icons to the 'fas' family</p>
+                    </div>
+                    
+                    <div class="svg-upload-container">
+                        <div class="svg-upload-area" id="svgUploadArea">
+                            <input type="file" id="svgFileInput" accept=".svg" style="display: none;">
+                            <div class="upload-placeholder" id="uploadPlaceholder">
+                                <span class="upload-icon">📁</span>
+                                <span>Click or drag SVG file here</span>
+                                <small>Supports individual SVG files</small>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview and Add Section (hidden initially) -->
+                        <div class="svg-preview-section hidden" id="svgPreviewSection">
+                            <div class="preview-header">
+                                <h4>📋 Review & Add Icon</h4>
+                            </div>
+                            <div class="preview-content">
+                                <div class="icon-preview-large" id="iconPreviewLarge">
+                                    <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="" fill="currentColor"/>
+                                    </svg>
+                                </div>
+                                <div class="icon-details">
+                                    <div class="detail-row">
+                                        <span class="detail-label">File:</span>
+                                        <span class="detail-value" id="fileName">-</span>
+                                    </div>
+                                    <div class="detail-row">
+                                        <span class="detail-label">Size:</span>
+                                        <span class="detail-value" id="iconSize">-</span>
+                                    </div>
+                                    <div class="form-field">
+                                        <label for="customIconName">Icon Name:</label>
+                                        <input type="text" id="customIconName" placeholder="my-custom-icon">
+                                        <small>Use lowercase letters, numbers, and hyphens only</small>
+                                    </div>
+                                    <div class="preview-actions">
+                                        <button class="btn btn-secondary" onclick="cancelUpload()">Cancel</button>
+                                        <button class="btn btn-custom" onclick="addUploadedIcon()">Add Icon</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div id="iconsGrid" class="icons-grid"></div>
 
                 <div id="downloadSection" class="download-section hidden">
