@@ -1,3 +1,76 @@
+// Direct close function for escape key
+function closeControlPanel() {
+    const controlPanel = document.getElementById('controlPanel');
+    const floatingBtn = document.getElementById('floatingControlBtn');
+    
+    if (controlPanel && floatingBtn) {
+        controlPanelOpen = false;
+        controlPanel.classList.remove('show');
+        floatingBtn.classList.remove('panel-open');
+        
+        // Hide after animation completes
+        setTimeout(() => {
+            controlPanel.classList.add('hidden');
+        }, 400);
+    }
+}
+
+// Floating Control Panel Functions
+let controlPanelOpen = false;
+
+function toggleControlPanel() {
+    const controlPanel = document.getElementById('controlPanel');
+    const floatingBtn = document.getElementById('floatingControlBtn');
+    
+    if (!controlPanel || !floatingBtn) {
+        console.error('Control panel elements not found');
+        return;
+    }
+    
+    controlPanelOpen = !controlPanelOpen;
+    
+    if (controlPanelOpen) {
+        controlPanel.classList.remove('hidden');
+        floatingBtn.classList.add('panel-open');
+        
+        // Small delay to ensure element is rendered before animation
+        setTimeout(() => {
+            controlPanel.classList.add('show');
+        }, 10);
+        
+        // Auto-focus search box when panel opens
+        setTimeout(() => {
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox) {
+                searchBox.focus();
+            }
+        }, 200);
+        
+        // Add escape key listener when panel opens
+        document.addEventListener('keyup', handleEscapeKey);
+    } else {
+        controlPanel.classList.remove('show');
+        floatingBtn.classList.remove('panel-open');
+        
+        // Remove escape key listener when panel closes
+        document.removeEventListener('keyup', handleEscapeKey);
+        
+        // Hide after animation completes
+        setTimeout(() => {
+            if (!controlPanelOpen) {
+                controlPanel.classList.add('hidden');
+            }
+        }, 400);
+    }
+}
+
+// Simple escape key handler
+function handleEscapeKey(e) {
+    if (e.key === 'Escape' || e.keyCode === 27) {
+        closeControlPanel();
+    }
+}
+
 let allIcons = [];
 let selectedIconsSet = new Set();
 let originalContent = '';
@@ -90,10 +163,13 @@ function hideLoading() {
 
 function showIcons() {
     document.getElementById('iconsSection').classList.remove('hidden');
+    document.getElementById('floatingControlBtn').classList.remove('hidden');
     renderIcons(allIcons);
     updateStats();
     setupSearch();
     setupCustomIconUpload(); // Initialize custom icon upload
+    setupSizeSlider(); // Initialize size slider
+    loadSelectionsOnStartup(); // Auto-load saved selections
 }
 
 function downloadCustomFile() {
@@ -152,89 +228,50 @@ function renderIcons(filteredIcons = allIcons) {
         iconsByFamily[icon.family].push(icon);
     });
 
-    // Render icons grouped by family
+    // Render each family as a collapsible section
     Object.keys(iconsByFamily).sort().forEach(family => {
-        // Create family header if there are multiple families
-        if (Object.keys(iconsByFamily).length > 1) {
-            const familyHeader = document.createElement('div');
-            familyHeader.className = 'family-header';
-            familyHeader.style.cssText = `
-                grid-column: 1 / -1;
-                padding: 15px 0 10px 0;
-                font-weight: bold;
-                color: #333;
-                border-bottom: 2px solid #f0f0f0;
-                margin-bottom: 10px;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            `;
-            
-            const familyBadge = document.createElement('span');
-            familyBadge.style.cssText = `
-                background: ${getFamilyBadgeColor(family)};
-                color: white;
-                padding: 4px 8px;
-                border-radius: 12px;
-                font-size: 0.8rem;
-                font-weight: normal;
-            `;
-            familyBadge.textContent = family.toUpperCase();
-            
-            familyHeader.innerHTML = `
-                Family: ${family} 
-                <span style="color: #666; font-weight: normal;">(${iconsByFamily[family].length} icons)</span>
-            `;
-            familyHeader.insertBefore(familyBadge, familyHeader.firstChild);
-            
-            grid.appendChild(familyHeader);
-        }
+        const familySection = document.createElement('div');
+        familySection.className = 'family-section';
+        familySection.setAttribute('data-family', family);
 
-        // Render icons in this family
-        iconsByFamily[family].forEach(icon => {
-            const iconItem = document.createElement('div');
-            iconItem.className = `icon-item ${selectedIconsSet.has(icon.name) ? 'selected' : ''}`;
-            
-            const iconPreview = createIconSVG(icon);
-            
-            // Create family badge
-            const isCustomIcon = icon.isCustom;
-            const badgeText = isCustomIcon ? 'CUSTOM' : icon.family;
-            const badgeColor = getFamilyBadgeColor(icon.family, isCustomIcon);
-            
-            const familyBadge = `<span style="
-                background: ${badgeColor};
-                color: white;
-                padding: 2px 6px;
-                border-radius: 8px;
-                font-size: 0.7rem;
-                margin-left: auto;
-                flex-shrink: 0;
-                font-weight: bold;
-            ">${badgeText}</span>`;
-            
-            iconItem.innerHTML = `
-                <input type="checkbox" class="icon-checkbox" ${selectedIconsSet.has(icon.name) ? 'checked' : ''} 
-                       onchange="toggleIcon('${icon.name}')">
-                <div class="icon-preview">
-                    ${iconPreview}
+        const badgeClass = iconsByFamily[family].some(icon => icon.isCustom) ? 'custom' : family;
+        const familyDisplayName = iconsByFamily[family].some(icon => icon.isCustom) ? 'Custom Icons' : family.toUpperCase();
+
+        familySection.innerHTML = `
+            <div class="family-header" onclick="toggleFamily('${family}')">
+                <div class="family-info">
+                    <div class="family-badge ${badgeClass}">${familyDisplayName}</div>
+                    <div class="family-title">Font Family: ${family}</div>
+                    <div class="family-count">(${iconsByFamily[family].length} icons)</div>
                 </div>
-                <span class="icon-name" style="flex: 1;">${icon.name}</span>
-                ${familyBadge}
-            `;
-            
-            iconItem.addEventListener('click', (e) => {
-                if (e.target.type !== 'checkbox') {
-                    toggleIcon(icon.name);
-                    const checkbox = iconItem.querySelector('.icon-checkbox');
-                    checkbox.checked = selectedIconsSet.has(icon.name);
-                    iconItem.classList.toggle('selected', selectedIconsSet.has(icon.name));
-                }
-            });
+                <div class="collapse-icon">▼</div>
+            </div>
+            <div class="family-icons">
+                ${iconsByFamily[family].map(icon => createIconHTML(icon)).join('')}
+            </div>
+        `;
 
-            grid.appendChild(iconItem);
-        });
+        grid.appendChild(familySection);
     });
+}
+
+function createIconHTML(icon) {
+    const iconPreview = createIconSVG(icon);
+    const isSelected = selectedIconsSet.has(icon.name);
+    
+    return `
+        <div class="icon-item ${isSelected ? 'selected' : ''}" onclick="toggleIcon('${icon.name}')">
+            <div class="icon-preview">
+                ${iconPreview}
+            </div>
+            <span class="icon-name">${icon.name}</span>
+        </div>
+    `;
+}
+
+function toggleFamily(family) {
+    const familySection = document.querySelector(`[data-family="${family}"]`);
+    familySection.classList.toggle('collapsed');
 }
 
 function toggleIcon(iconName) {
@@ -243,6 +280,16 @@ function toggleIcon(iconName) {
     } else {
         selectedIconsSet.add(iconName);
     }
+    
+    // Update the specific icon item's appearance
+    const iconItems = document.querySelectorAll('.icon-item');
+    iconItems.forEach(item => {
+        const nameSpan = item.querySelector('.icon-name');
+        if (nameSpan && nameSpan.textContent === iconName) {
+            item.classList.toggle('selected', selectedIconsSet.has(iconName));
+        }
+    });
+    
     updateStats();
 }
 
@@ -428,7 +475,6 @@ async function generateCustomFile() {
         }
 
         customContent = result.content;
-        document.getElementById('downloadSection').classList.remove('hidden');
         
         // Show generation summary
         const selectedByFamily = {};
@@ -438,8 +484,11 @@ async function generateCustomFile() {
         
         console.log('Generated file with icons by family:', selectedByFamily);
         
-        // Scroll to download section
-        document.getElementById('downloadSection').scrollIntoView({ behavior: 'smooth' });
+        // Auto-download the file immediately
+        downloadCustomFile();
+        
+        // Show success notification
+        showNotification(`🎉 Custom Font Awesome file downloaded! (${selectedIconsSet.size} icons)`, 'success');
         
         // Reset button
         generateBtn.textContent = originalText;
@@ -756,4 +805,251 @@ function validateIconName(name) {
     }
     
     return null;
+}
+
+// Save/Load Functionality
+function saveSelections() {
+    try {
+        const saveData = {
+            selectedIcons: Array.from(selectedIconsSet),
+            customIcons: customIcons,
+            timestamp: new Date().toISOString(),
+            version: '1.0'
+        };
+        
+        localStorage.setItem('fontawesome-customizer-selections', JSON.stringify(saveData));
+        
+        // Show success feedback
+        showNotification('✅ Selections saved successfully!', 'success');
+        
+        console.log('Saved selections:', saveData);
+        
+    } catch (error) {
+        console.error('Error saving selections:', error);
+        showNotification('❌ Error saving selections. Please try again.', 'error');
+    }
+}
+
+function loadSelections() {
+    try {
+        const savedData = localStorage.getItem('fontawesome-customizer-selections');
+        
+        if (!savedData) {
+            showNotification('📂 No saved selections found.', 'info');
+            return;
+        }
+        
+        const saveData = JSON.parse(savedData);
+        
+        // Validate save data structure
+        if (!saveData.selectedIcons || !Array.isArray(saveData.selectedIcons)) {
+            throw new Error('Invalid save data format');
+        }
+        
+        // Clear current selections
+        selectedIconsSet.clear();
+        
+        // Load selected icons (only if they exist in current icon set)
+        const availableIconNames = new Set(allIcons.map(icon => icon.name));
+        let loadedCount = 0;
+        
+        saveData.selectedIcons.forEach(iconName => {
+            if (availableIconNames.has(iconName)) {
+                selectedIconsSet.add(iconName);
+                loadedCount++;
+            }
+        });
+        
+        // Load custom icons if they exist and aren't already loaded
+        if (saveData.customIcons && Array.isArray(saveData.customIcons)) {
+            const existingCustomNames = new Set(customIcons.map(icon => icon.name));
+            let customLoadedCount = 0;
+            
+            saveData.customIcons.forEach(customIcon => {
+                if (!existingCustomNames.has(customIcon.name)) {
+                    // Add to custom icons array
+                    customIcons.push(customIcon);
+                    allIcons.push(customIcon);
+                    
+                    // Update families
+                    if (!iconFamilies[customIcon.family]) {
+                        iconFamilies[customIcon.family] = [];
+                    }
+                    iconFamilies[customIcon.family].push(customIcon);
+                    
+                    // Select the custom icon
+                    selectedIconsSet.add(customIcon.name);
+                    customLoadedCount++;
+                }
+            });
+            
+            if (customLoadedCount > 0) {
+                updateFilteredIcons();
+            }
+        }
+        
+        // Re-render icons and update stats
+        renderIcons(currentFilteredIcons);
+        updateStats();
+        
+        // Show success feedback
+        const saveDate = saveData.timestamp ? new Date(saveData.timestamp).toLocaleDateString() : 'Unknown date';
+        showNotification(`✅ Loaded ${loadedCount} selections from ${saveDate}`, 'success');
+        
+        console.log('Loaded selections:', saveData);
+        
+    } catch (error) {
+        console.error('Error loading selections:', error);
+        showNotification('❌ Error loading selections. Save data may be corrupted.', 'error');
+    }
+}
+
+function loadSelectionsOnStartup() {
+    // Auto-load selections when icons are first displayed
+    try {
+        const savedData = localStorage.getItem('fontawesome-customizer-selections');
+        if (savedData && allIcons.length > 0) {
+            // Small delay to ensure everything is rendered
+            setTimeout(() => {
+                loadSelections();
+            }, 100);
+        }
+    } catch (error) {
+        console.error('Error auto-loading selections:', error);
+    }
+}
+
+function clearSavedSelections() {
+    if (confirm('Are you sure you want to clear all saved selections? This cannot be undone.')) {
+        try {
+            localStorage.removeItem('fontawesome-customizer-selections');
+            showNotification('🗑️ Saved selections cleared.', 'info');
+        } catch (error) {
+            console.error('Error clearing saved selections:', error);
+            showNotification('❌ Error clearing saved selections.', 'error');
+        }
+    }
+}
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.textContent = message;
+    
+    // Style the notification
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 20px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        font-size: 0.9rem;
+        z-index: 10000;
+        max-width: 300px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+        transform: translateX(100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    `;
+    
+    // Set background based on type
+    const backgrounds = {
+        success: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+        error: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
+        info: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        warning: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)'
+    };
+    
+    notification.style.background = backgrounds[type] || backgrounds.info;
+    
+    // Add to page
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Remove after delay
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Add keyboard shortcuts for save/load
+document.addEventListener('keydown', (e) => {
+    // Ctrl+S to save (prevent default browser save)
+    if (e.ctrlKey && e.key === 's') {
+        e.preventDefault();
+        if (allIcons.length > 0) {
+            saveSelections();
+        }
+    }
+    
+    // Ctrl+L to load
+    if (e.ctrlKey && e.key === 'l') {
+        e.preventDefault();
+        if (allIcons.length > 0) {
+            loadSelections();
+        }
+    }
+});
+
+// Size Slider Functionality
+function setupSizeSlider() {
+    const sizeSlider = document.getElementById('iconSizeSlider');
+    const sizeValue = document.getElementById('sizeValue');
+    
+    if (!sizeSlider || !sizeValue) return;
+    
+    // Set initial size
+    updateIconSize(sizeSlider.value);
+    
+    // Handle slider changes
+    sizeSlider.addEventListener('input', (e) => {
+        const size = e.target.value;
+        updateIconSize(size);
+        sizeValue.textContent = size + 'px';
+    });
+    
+    // Handle slider release for smooth performance
+    sizeSlider.addEventListener('change', (e) => {
+        const size = e.target.value;
+        updateIconSize(size);
+    });
+}
+
+function updateIconSize(size) {
+    // Update size value display
+    const sizeValue = document.getElementById('sizeValue');
+    if (sizeValue) {
+        sizeValue.textContent = size + 'px';
+    }
+    
+    // Only scale the actual icon elements - nothing else!
+    const baseIconSize = 24; // Base SVG size in pixels
+    const scaleFactor = size / 280; // 280 is the default slider value
+    const newIconSize = Math.round(baseIconSize * scaleFactor);
+    
+    // Scale only the SVG icons inside previews
+    const iconSvgs = document.querySelectorAll('.icon-preview svg');
+    iconSvgs.forEach(svg => {
+        svg.style.width = newIconSize + 'px';
+        svg.style.height = newIconSize + 'px';
+    });
+    
+    // Scale unicode display elements if they exist
+    const unicodeDisplays = document.querySelectorAll('.icon-preview .unicode-display');
+    unicodeDisplays.forEach(unicode => {
+        const newFontSize = Math.round(14 * scaleFactor);
+        unicode.style.fontSize = newFontSize + 'px';
+    });
 }

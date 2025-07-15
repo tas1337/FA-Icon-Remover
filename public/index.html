@@ -4,22 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Font Awesome Customizer</title>
-    <!-- Load search configuration -->
-    <script src="search-config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎨 Font Awesome Customizer</h1>
-            <p>Upload your Font Awesome JS file, select the icons you need, and download a custom optimized version</p>
+            <div class="header-content">
+                <h1>🎨 Font Awesome Customizer</h1>
+                <p>Upload your Font Awesome JS file, select the icons you need, and download a custom optimized version with premium user experience</p>
+            </div>
         </div>
 
         <div class="content">
             <div id="uploadSection" class="upload-section">
-                <h3>📁 Upload Font Awesome JS File</h3>
-                <p style="margin: 15px 0; color: #666;">Drag and drop your Font Awesome JS file here, or click to browse</p>
-                <input type="file" id="fileInput" class="file-input" accept=".js" />
+                <div class="upload-icon">📁</div>
+                <h3>Upload Font Awesome JS File</h3>
+                <p style="margin: 20px 0; color: var(--text-secondary); font-weight: 500;">Drag and drop your Font Awesome JS file here, or click to browse</p>
+                <input type="file" id="fileInput" class="file-input" accept=".js" style="display: none;" />
                 <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
                     Choose File
                 </button>
@@ -27,105 +29,131 @@
 
             <div id="loadingSection" class="loading hidden">
                 <div class="spinner"></div>
-                <p>Parsing Font Awesome file...</p>
+                <p style="font-size: 1.1rem; font-weight: 500;">Parsing Font Awesome file...</p>
             </div>
 
             <div id="iconsSection" class="hidden">
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-number" id="totalIcons">0</div>
-                        <div class="stat-label">Total Icons</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number" id="selectedIcons">0</div>
-                        <div class="stat-label">Selected</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number" id="estimatedSavings">0%</div>
-                        <div class="stat-label">Est. Size Reduction</div>
-                    </div>
-                </div>
+                <div id="iconsGrid" class="icons-grid"></div>
+            </div>
+        </div>
+    </div>
 
-                <div class="controls">
-                    <div class="search-container">
-                        <input type="text" id="searchBox" class="search-box" placeholder="🔍 Try: bank, phone, arrow, home, money, user..." />
-                        <div class="search-suggestions" id="searchSuggestions"></div>
-                        <div class="search-help">
-                            <small>💡 Smart search: "bank" finds university, building-columns, piggy-bank, etc.</small>
+    <!-- Floating Control Button -->
+    <div id="floatingControlBtn" class="floating-control-btn hidden" onclick="toggleControlPanel()">
+        <span class="control-icon">⚙️</span>
+        <span class="control-text">Controls</span>
+    </div>
+
+    <!-- Floating Control Panel -->
+    <div id="controlPanel" class="control-panel hidden">
+        <div class="control-panel-header">
+            <h3>🎛️ Control Panel</h3>
+            <button class="close-btn" onclick="toggleControlPanel()">✕</button>
+        </div>
+        
+        <div class="control-panel-content">
+            <!-- Stats moved to popup -->
+            <div class="stats-popup">
+                <div class="stat">
+                    <div class="stat-number" id="totalIcons">0</div>
+                    <div class="stat-label">Total Icons</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="selectedIcons">0</div>
+                    <div class="stat-label">Selected Icons</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="estimatedSavings">0%</div>
+                    <div class="stat-label">Size Reduction</div>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="search-container">
+                <input type="text" id="searchBox" class="search-box" placeholder="🔍 Try: bank, phone, arrow, home, money, user..." />
+                <div class="search-suggestions" id="searchSuggestions"></div>
+                <div class="search-help">
+                    <small>💡 Smart search: "bank" finds university, building-columns, piggy-bank, etc.</small>
+                    <small style="display: block; margin-top: 5px;">⌨️ Shortcuts: Ctrl+S save, Ctrl+L load, Esc close, Ctrl+Space toggle</small>
+                </div>
+            </div>
+            
+            <!-- Size Control -->
+            <div class="size-control">
+                <label for="iconSizeSlider" class="size-label">📏 Icon Size</label>
+                <input type="range" id="iconSizeSlider" class="size-slider" min="200" max="1000" value="280" step="20">
+                <span class="size-value" id="sizeValue">280px</span>
+            </div>
+            
+            <!-- Bulk Actions -->
+            <div class="bulk-actions">
+                <button class="btn btn-primary" onclick="selectAll()">Select All</button>
+                <button class="btn btn-secondary" onclick="selectNone()">Select None</button>
+                <button class="btn btn-primary" onclick="selectVisible()">Select Visible</button>
+                <button class="btn btn-save" onclick="saveSelections()" title="Save your current selections">💾 Save</button>
+                <button class="btn btn-load" onclick="loadSelections()" title="Load your saved selections">📂 Load</button>
+                <button class="btn btn-success" onclick="generateCustomFile()">🚀 Generate</button>
+            </div>
+
+            <!-- Custom Icon Upload Section -->
+            <div class="custom-icon-section">
+                <div class="custom-icon-header">
+                    <h3>🎨 Add Custom Icons</h3>
+                    <p>Upload SVG files to add them as custom icons to the 'fas' family</p>
+                </div>
+                
+                <div class="svg-upload-container">
+                    <div class="svg-upload-area" id="svgUploadArea">
+                        <input type="file" id="svgFileInput" accept=".svg" style="display: none;">
+                        <div class="upload-placeholder" id="uploadPlaceholder">
+                            <span class="upload-icon">📁</span>
+                            <div style="margin-top: 15px;">
+                                <strong style="display: block; margin-bottom: 5px;">Click or drag SVG file here</strong>
+                                <small style="color: var(--text-muted);">Supports individual SVG files</small>
+                            </div>
                         </div>
-                    </div>
-                    <div class="bulk-actions">
-                        <button class="btn btn-primary" onclick="selectAll()">Select All</button>
-                        <button class="btn btn-secondary" onclick="selectNone()">Select None</button>
-                        <button class="btn btn-primary" onclick="selectVisible()">Select Visible</button>
-                        <button class="btn btn-success" onclick="generateCustomFile()">Generate Custom File</button>
-                    </div>
-                </div>
-
-                <!-- Custom Icon Upload Section -->
-                <div class="custom-icon-section">
-                    <div class="custom-icon-header">
-                        <h3>🎨 Add Custom Icons</h3>
-                        <p>Upload SVG files to add them as custom icons to the 'fas' family</p>
                     </div>
                     
-                    <div class="svg-upload-container">
-                        <div class="svg-upload-area" id="svgUploadArea">
-                            <input type="file" id="svgFileInput" accept=".svg" style="display: none;">
-                            <div class="upload-placeholder" id="uploadPlaceholder">
-                                <span class="upload-icon">📁</span>
-                                <span>Click or drag SVG file here</span>
-                                <small>Supports individual SVG files</small>
-                            </div>
+                    <!-- Preview and Add Section (hidden initially) -->
+                    <div class="svg-preview-section hidden" id="svgPreviewSection">
+                        <div class="preview-header">
+                            <h4 style="font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 20px;">📋 Review & Add Icon</h4>
                         </div>
-                        
-                        <!-- Preview and Add Section (hidden initially) -->
-                        <div class="svg-preview-section hidden" id="svgPreviewSection">
-                            <div class="preview-header">
-                                <h4>📋 Review & Add Icon</h4>
+                        <div class="preview-content">
+                            <div class="icon-preview-large" id="iconPreviewLarge">
+                                <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="" fill="currentColor"/>
+                                </svg>
                             </div>
-                            <div class="preview-content">
-                                <div class="icon-preview-large" id="iconPreviewLarge">
-                                    <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="" fill="currentColor"/>
-                                    </svg>
+                            <div class="icon-details">
+                                <div style="margin-bottom: 15px;">
+                                    <span style="font-weight: 600; color: var(--text-secondary);">File:</span>
+                                    <span style="margin-left: 10px; color: var(--text-primary);" id="fileName">-</span>
                                 </div>
-                                <div class="icon-details">
-                                    <div class="detail-row">
-                                        <span class="detail-label">File:</span>
-                                        <span class="detail-value" id="fileName">-</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Size:</span>
-                                        <span class="detail-value" id="iconSize">-</span>
-                                    </div>
-                                    <div class="form-field">
-                                        <label for="customIconName">Icon Name:</label>
-                                        <input type="text" id="customIconName" placeholder="my-custom-icon">
-                                        <small>Use lowercase letters, numbers, and hyphens only</small>
-                                    </div>
-                                    <div class="preview-actions">
-                                        <button class="btn btn-secondary" onclick="cancelUpload()">Cancel</button>
-                                        <button class="btn btn-custom" onclick="addUploadedIcon()">Add Icon</button>
-                                    </div>
+                                <div style="margin-bottom: 15px;">
+                                    <span style="font-weight: 600; color: var(--text-secondary);">Size:</span>
+                                    <span style="margin-left: 10px; color: var(--text-primary);" id="iconSize">-</span>
+                                </div>
+                                <div class="form-field">
+                                    <label for="customIconName">Icon Name:</label>
+                                    <input type="text" id="customIconName" placeholder="my-custom-icon">
+                                    <small>Use lowercase letters, numbers, and hyphens only</small>
+                                </div>
+                                <div class="preview-actions">
+                                    <button class="btn btn-secondary" onclick="cancelUpload()">Cancel</button>
+                                    <button class="btn btn-custom" onclick="addUploadedIcon()">Add Icon</button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div id="iconsGrid" class="icons-grid"></div>
-
-                <div id="downloadSection" class="download-section hidden">
-                    <h3>✅ Custom Font Awesome Generated!</h3>
-                    <p style="margin: 15px 0;">Your optimized Font Awesome file is ready for download.</p>
-                    <button class="btn btn-success" onclick="downloadCustomFile()" style="font-size: 1.1rem; padding: 15px 30px;">
-                        📥 Download Custom File
-                    </button>
                 </div>
             </div>
         </div>
     </div>
+        </div>
+    </div>
+
+    <script src="search-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
