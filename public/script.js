@@ -462,6 +462,18 @@ async function generateCustomFile() {
     const selectedIcons = allIcons.filter(icon => selectedIconsSet.has(icon.name));
     console.log('Generating custom file with selected icons:', selectedIcons.map(i => `${i.name} (${i.family})`));
 
+    // FIXED: Filter out custom icons that are already in selectedIcons
+    const customIconsToSend = customIcons.filter(customIcon => {
+        const isAlreadySelected = selectedIconsSet.has(customIcon.name);
+        if (isAlreadySelected) {
+            console.log(`Custom icon "${customIcon.name}" is already selected, not sending separately`);
+            return false;
+        }
+        return true;
+    });
+
+    console.log(`Sending ${customIconsToSend.length} custom icons separately (not already selected)`);
+
     try {
         // Show loading state
         const generateBtn = document.querySelector('button[onclick="generateCustomFile()"]');
@@ -477,7 +489,7 @@ async function generateCustomFile() {
             body: JSON.stringify({
                 originalContent: originalContent,
                 selectedIcons: selectedIcons,
-                customIcons: customIcons // Include custom icons
+                customIcons: customIconsToSend // Send only unselected custom icons
             })
         });
 

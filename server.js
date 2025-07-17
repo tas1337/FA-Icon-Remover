@@ -65,7 +65,7 @@ app.post('/generate', (req, res) => {
       return res.status(400).json({ error: 'Missing required data' });
     }
 
-    console.log(`Received ${customIcons.length} custom icons to add`);
+    console.log(`Received ${selectedIcons.length} selected icons and ${customIcons.length} custom icons`);
     
     const customContent = generateCustomFontAwesome(originalContent, selectedIcons, customIcons);
     
@@ -161,6 +161,19 @@ function parseIconsFromJS(content) {
 function generateCustomFontAwesome(originalContent, selectedIcons, customIcons = []) {
   console.log(`Generating custom file with ${selectedIcons.length} selected icons and ${customIcons.length} custom icons`);
   
+  // Debug: Show what we received
+  console.log('Selected icons:', selectedIcons.map(icon => `${icon.name} (${icon.family})`));
+  console.log('Custom icons:', customIcons.map(icon => `${icon.name} (${icon.family})`));
+  
+  // Check for duplicates between selectedIcons and customIcons
+  const selectedNames = selectedIcons.map(icon => icon.name);
+  const customNames = customIcons.map(icon => icon.name);
+  const duplicateNames = selectedNames.filter(name => customNames.includes(name));
+  
+  if (duplicateNames.length > 0) {
+    console.log('Found duplicate names between selected and custom icons:', duplicateNames);
+  }
+  
   // Group selected icons by family
   const selectedByFamily = {};
   selectedIcons.forEach(icon => {
@@ -170,25 +183,51 @@ function generateCustomFontAwesome(originalContent, selectedIcons, customIcons =
     selectedByFamily[icon.family].push(icon);
   });
   
-  // Add custom icons to the 'fas' family
+  // FIXED: Only add custom icons that are NOT already in selectedIcons
   if (customIcons.length > 0) {
-    if (!selectedByFamily['fas']) {
-      selectedByFamily['fas'] = [];
-    }
+    console.log('Processing custom icons...');
+    console.log('Custom icons to process:', customIcons.map(ci => ci.name));
     
-    // Convert custom icons to the expected format
-    customIcons.forEach(customIcon => {
-      selectedByFamily['fas'].push({
-        name: customIcon.name,
-        width: customIcon.width,
-        height: customIcon.height,
-        unicode: customIcon.unicode,
-        svgPath: customIcon.svgPath,
-        family: 'fas'
-      });
+    // Create a set of selected icon names for quick lookup
+    const selectedIconNames = new Set(selectedIcons.map(icon => icon.name));
+    console.log('Selected icon names:', Array.from(selectedIconNames));
+    
+    // Filter out custom icons that are already in selectedIcons
+    const customIconsToAdd = customIcons.filter(customIcon => {
+      const isAlreadySelected = selectedIconNames.has(customIcon.name);
+      console.log(`Custom icon "${customIcon.name}" already selected: ${isAlreadySelected}`);
+      if (isAlreadySelected) {
+        console.log(`Skipping custom icon "${customIcon.name}" - already in selected icons`);
+        return false;
+      }
+      return true;
     });
     
-    console.log(`Added ${customIcons.length} custom icons to fas family`);
+    console.log(`Filtered custom icons to add: ${customIconsToAdd.length}`);
+    console.log('Custom icons to add:', customIconsToAdd.map(ci => ci.name));
+    
+    // Add the filtered custom icons to the 'fas' family
+    if (customIconsToAdd.length > 0) {
+      if (!selectedByFamily['fas']) {
+        selectedByFamily['fas'] = [];
+      }
+      
+      // Convert custom icons to the expected format
+      customIconsToAdd.forEach(customIcon => {
+        selectedByFamily['fas'].push({
+          name: customIcon.name,
+          width: customIcon.width,
+          height: customIcon.height,
+          unicode: customIcon.unicode,
+          svgPath: customIcon.svgPath,
+          family: 'fas'
+        });
+      });
+      
+      console.log(`Added ${customIconsToAdd.length} custom icons to fas family`);
+    } else {
+      console.log('No custom icons to add - all were already selected');
+    }
   }
   
   console.log('Selected icons by family:', Object.keys(selectedByFamily).map(family => 
@@ -244,8 +283,27 @@ function generateCustomFontAwesome(originalContent, selectedIcons, customIcons =
     const iconsSuffix = iconsObjectMatch[4];
     const afterIcons = iconsObjectMatch[5];
     
-    // Build new icons content with selected icons
-    const newIconsContent = selectedForThisFamily.map(icon => {
+    // Remove duplicates within the same family (safety check)
+    const uniqueIcons = [];
+    const seenNames = new Set();
+    
+    console.log(`Processing ${selectedForThisFamily.length} icons for ${familyPrefix} family before deduplication`);
+    console.log('Icons before deduplication:', selectedForThisFamily.map(icon => icon.name));
+    
+    selectedForThisFamily.forEach(icon => {
+      if (!seenNames.has(icon.name)) {
+        seenNames.add(icon.name);
+        uniqueIcons.push(icon);
+      } else {
+        console.log(`Removing duplicate icon within ${familyPrefix} family: ${icon.name}`);
+      }
+    });
+    
+    console.log(`After deduplication: ${uniqueIcons.length} unique icons`);
+    console.log('Final unique icons:', uniqueIcons.map(icon => icon.name));
+    
+    // Build new icons content with unique icons
+    const newIconsContent = uniqueIcons.map(icon => {
       return `    "${icon.name}": [${icon.width}, ${icon.height}, [], "${icon.unicode}", "${icon.svgPath}"]`;
     }).join(',\n');
     
@@ -255,7 +313,7 @@ function generateCustomFontAwesome(originalContent, selectedIcons, customIcons =
     customContent += iifeStart + newIifeBody + iifeEnd;
     lastIndex = match.index + match[0].length;
     
-    console.log(`Kept ${selectedForThisFamily.length} icons in ${familyPrefix} family`);
+    console.log(`Kept ${uniqueIcons.length} unique icons in ${familyPrefix} family`);
   }
   
   // Add any remaining content after the last IIFE
