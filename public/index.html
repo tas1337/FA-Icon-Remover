@@ -87,6 +87,13 @@
             
             <!-- Bulk Actions -->
             <div class="bulk-actions">
+                <button onclick="loadSelectionsOnly()" class="btn btn-secondary">
+                    📂 Load Selections Only
+                </button>
+                <button onclick="loadCustomIconsOnly()" class="btn btn-warning" title="Load only custom icons, ignore selections (Ctrl+Shift+C)">
+                    🎨 Load Custom Icons Only
+                </button>
+    
                 <button class="btn btn-primary" onclick="selectAll()">Select All</button>
                 <button class="btn btn-secondary" onclick="selectNone()">Select None</button>
                 <button class="btn btn-primary" onclick="selectVisible()">Select Visible</button>

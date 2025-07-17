@@ -939,6 +939,187 @@ function validateIconName(name, targetFamily = 'fas') {
     return null;
 }
 
+// NEW FUNCTION: Load only custom icons (not selected icons)
+function loadCustomIconsOnly() {
+    try {
+        const savedData = localStorage.getItem('fontawesome-customizer-selections');
+        
+        if (!savedData) {
+            showNotification('📂 No saved data found.', 'info');
+            return;
+        }
+        
+        const saveData = JSON.parse(savedData);
+        
+        // Validate save data structure
+        if (!saveData.customIcons || !Array.isArray(saveData.customIcons)) {
+            showNotification('📂 No custom icons found in saved data.', 'info');
+            return;
+        }
+        
+        if (saveData.customIcons.length === 0) {
+            showNotification('📂 No custom icons to load.', 'info');
+            return;
+        }
+        
+        // Show confirmation dialog with context info
+        const saveDate = saveData.timestamp ? new Date(saveData.timestamp).toLocaleDateString() : 'Unknown date';
+        const saveFileName = saveData.fileName || 'Unknown file';
+        const currentFileContext = currentFileName || 'Current file';
+        
+        let confirmMessage = `Load ONLY custom icons from ${saveDate}?\n\n`;
+        confirmMessage += `Saved for: "${saveFileName}"\n`;
+        confirmMessage += `Current file: "${currentFileContext}"\n\n`;
+        confirmMessage += `• ${saveData.selectedIcons?.length || 0} selected icons (will be IGNORED)\n`;
+        confirmMessage += `• ${saveData.customIcons.length} custom icons\n\n`;
+        
+        if (saveFileName !== currentFileName) {
+            confirmMessage += `⚠️ Warning: This was saved for a different file. Custom icons may not work correctly.`;
+        } else {
+            confirmMessage += `⚠️ Selected icons will NOT be loaded - only custom icons.`;
+        }
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
+        // Load custom icons
+        let customLoadedCount = 0;
+        let customSkippedCount = 0;
+        
+        saveData.customIcons.forEach(customIcon => {
+            // Check if icon already exists in the same family before adding
+            const existsInCustom = customIcons.some(icon => 
+                icon.name === customIcon.name && icon.family === customIcon.family
+            );
+            const existsInAll = allIcons.some(icon => 
+                icon.name === customIcon.name && icon.family === customIcon.family
+            );
+            
+            if (!existsInCustom && !existsInAll) {
+                // Add to custom icons array
+                customIcons.push(customIcon);
+                allIcons.push(customIcon);
+                
+                // Update families
+                if (!iconFamilies[customIcon.family]) {
+                    iconFamilies[customIcon.family] = [];
+                }
+                iconFamilies[customIcon.family].push(customIcon);
+                
+                // Auto-select the custom icon
+                selectedIconsSet.add(customIcon.name);
+                customLoadedCount++;
+            } else {
+                console.warn('Skipping duplicate custom icon:', `${customIcon.family}-${customIcon.name}`);
+                customSkippedCount++;
+            }
+        });
+        
+        if (customLoadedCount > 0) {
+            updateFilteredIcons();
+        }
+        
+        // Re-render icons and update stats
+        renderIcons(currentFilteredIcons);
+        updateStats();
+        
+        // Show detailed feedback
+        let message = `✅ Loaded ${customLoadedCount} custom icons only`;
+        if (customSkippedCount > 0) {
+            message += ` (${customSkippedCount} skipped - duplicates)`;
+        }
+        message += ` • Selected icons ignored`;
+        
+        showNotification(message, 'success');
+        
+        console.log('Loaded custom icons only:', {
+            customLoaded: customLoadedCount,
+            customSkipped: customSkippedCount,
+            selectionsIgnored: saveData.selectedIcons?.length || 0
+        });
+        
+    } catch (error) {
+        console.error('Error loading custom icons only:', error);
+        showNotification('❌ Error loading custom icons. Save data may be corrupted.', 'error');
+    }
+}
+
+// NEW FUNCTION: Load only selected icons (not custom icons)
+function loadSelectionsOnly() {
+    try {
+        const savedData = localStorage.getItem('fontawesome-customizer-selections');
+        
+        if (!savedData) {
+            showNotification('📂 No saved selections found.', 'info');
+            return;
+        }
+        
+        const saveData = JSON.parse(savedData);
+        
+        // Validate save data structure
+        if (!saveData.selectedIcons || !Array.isArray(saveData.selectedIcons)) {
+            throw new Error('Invalid save data format');
+        }
+        
+        // Show confirmation dialog with context info
+        const saveDate = saveData.timestamp ? new Date(saveData.timestamp).toLocaleDateString() : 'Unknown date';
+        const saveFileName = saveData.fileName || 'Unknown file';
+        const currentFileContext = currentFileName || 'Current file';
+        
+        let confirmMessage = `Load ONLY selected icons from ${saveDate}?\n\n`;
+        confirmMessage += `Saved for: "${saveFileName}"\n`;
+        confirmMessage += `Current file: "${currentFileContext}"\n\n`;
+        confirmMessage += `• ${saveData.selectedIcons.length} selected icons\n`;
+        confirmMessage += `• ${saveData.customIcons?.length || 0} custom icons (will be IGNORED)\n\n`;
+        confirmMessage += `⚠️ Custom icons will NOT be loaded - only icon selections.`;
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
+        // Clear current selections
+        selectedIconsSet.clear();
+        
+        // Load selected icons (only if they exist in current icon set)
+        const availableIconNames = new Set(allIcons.map(icon => icon.name));
+        let loadedCount = 0;
+        let skippedCount = 0;
+        
+        saveData.selectedIcons.forEach(iconName => {
+            if (availableIconNames.has(iconName)) {
+                selectedIconsSet.add(iconName);
+                loadedCount++;
+            } else {
+                skippedCount++;
+            }
+        });
+        
+        // Re-render icons and update stats
+        renderIcons(currentFilteredIcons);
+        updateStats();
+        
+        // Show detailed feedback
+        let message = `✅ Loaded ${loadedCount} selections only`;
+        if (skippedCount > 0) {
+            message += ` (${skippedCount} skipped - not in current file)`;
+        }
+        message += ` • Custom icons ignored`;
+        
+        showNotification(message, 'success');
+        
+        console.log('Loaded selections only:', {
+            loaded: loadedCount,
+            skipped: skippedCount,
+            customIgnored: saveData.customIcons?.length || 0
+        });
+        
+    } catch (error) {
+        console.error('Error loading selections only:', error);
+        showNotification('❌ Error loading selections. Save data may be corrupted.', 'error');
+    }
+}
+
 // Save/Load Functionality - FIXED VERSION
 function saveSelections() {
     try {
@@ -985,7 +1166,7 @@ function loadSelections() {
         const saveFileName = saveData.fileName || 'Unknown file';
         const currentFileContext = currentFileName || 'Current file';
         
-        let confirmMessage = `Load saved selections from ${saveDate}?\n\n`;
+        let confirmMessage = `Load saved selections & custom icons from ${saveDate}?\n\n`;
         confirmMessage += `Saved for: "${saveFileName}"\n`;
         confirmMessage += `Current file: "${currentFileContext}"\n\n`;
         confirmMessage += `• ${saveData.selectedIcons.length} selected icons\n`;
@@ -1212,11 +1393,27 @@ document.addEventListener('keydown', (e) => {
         }
     }
     
-    // Ctrl+L to load
+    // Ctrl+L to load (everything)
     if (e.ctrlKey && e.key === 'l') {
         e.preventDefault();
         if (allIcons.length > 0) {
             loadSelections();
+        }
+    }
+    
+    // Ctrl+Shift+L to load selections only (not custom icons)
+    if (e.ctrlKey && e.shiftKey && e.key === 'L') {
+        e.preventDefault();
+        if (allIcons.length > 0) {
+            loadSelectionsOnly();
+        }
+    }
+    
+    // Ctrl+Shift+C to load custom icons only (not selections)
+    if (e.ctrlKey && e.shiftKey && e.key === 'C') {
+        e.preventDefault();
+        if (allIcons.length > 0) {
+            loadCustomIconsOnly();
         }
     }
 });
