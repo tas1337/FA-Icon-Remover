@@ -3,156 +3,856 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Font Awesome Test Page</title>
-    
-    <script src="fontawesome-custom.js"></script>
-    
-    
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .icon-test {
-            display: flex;
-            align-items: center;
-            margin: 15px 0;
-            padding: 10px;
-            background: #f8f9fa;
-            border-radius: 5px;
-        }
-        
-        .icon-test i {
-            font-size: 24px;
-            margin-right: 15px;
-            color: #007bff;
-            width: 30px;
-        }
-        
-        .size-test {
-            margin: 20px 0;
-        }
-        
-        .size-test i {
-            margin: 0 10px;
-            color: #28a745;
-        }
-        
-        h1 {
-            color: #333;
-            text-align: center;
-        }
-        
-        h2 {
-            color: #666;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
-        }
-        
-        .code {
-            background: #f1f1f1;
-            padding: 5px 8px;
-            border-radius: 3px;
-            font-family: monospace;
-            font-size: 14px;
-        }
-    </style>
+    <title>Font Awesome Simple Tester</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1><i class="fas fa-vial"></i> Font Awesome Test Page</h1>
-        
-        <h2>Basic Icon Tests</h2>
-        <div class="icon-test">
-            <i class="fas fa-custom-icon"></i>
-            <span>Home Icon - <span class="code">&lt;i class="fas fa-home"&gt;&lt;/i&gt;</span></span>
+        <div class="header">
+            <h1>🧪 Font Awesome Simple Tester</h1>
+            <p>Drag your fontawesome-custom.js file here to test it directly</p>
         </div>
-        
-        <div class="icon-test">
-            <i class="fas fa-custom-test"></i>
-            <span>User Icon - <span class="code">&lt;i class="fas fa-user"&gt;&lt;/i&gt;</span></span>
-        </div>
-        
-        <div class="icon-test">
-            <i class="fas fa-envelope"></i>
-            <span>Envelope Icon - <span class="code">&lt;i class="fas fa-envelope"&gt;&lt;/i&gt;</span></span>
-        </div>
-        
-        <div class="icon-test">
-            <i class="fas fa-heart"></i>
-            <span>Heart Icon - <span class="code">&lt;i class="fas fa-heart"&gt;&lt;/i&gt;</span></span>
-        </div>
-        
-        <div class="icon-test">
-            <i class="fas fa-star"></i>
-            <span>Star Icon - <span class="code">&lt;i class="fas fa-star"&gt;&lt;/i&gt;</span></span>
-        </div>
-        
-        <h2>Different Icon Styles</h2>
-        <div class="icon-test">
-            <i class="fas fa-bookmark"></i>
-            <span>Solid (fas) - <span class="code">&lt;i class="fas fa-bookmark"&gt;&lt;/i&gt;</span></span>
-        </div>
-        
-        <div class="icon-test">
-            <i class="far fa-bookmark"></i>
-            <span>Regular (far) - <span class="code">&lt;i class="far fa-bookmark"&gt;&lt;/i&gt;</span></span>
-        </div>
-        
-        <div class="icon-test">
-            <i class="fab fa-github"></i>
-            <span>Brands (fab) - <span class="code">&lt;i class="fab fa-github"&gt;&lt;/i&gt;</span></span>
-        </div>
-        
-        <h2>Size Tests</h2>
-        <div class="size-test">
-            <i class="fas fa-thumbs-up fa-xs"></i>
-            <i class="fas fa-thumbs-up fa-sm"></i>
-            <i class="fas fa-thumbs-up"></i>
-            <i class="fas fa-thumbs-up fa-lg"></i>
-            <i class="fas fa-thumbs-up fa-xl"></i>
-            <i class="fas fa-thumbs-up fa-2x"></i>
-            <i class="fas fa-thumbs-up fa-3x"></i>
-        </div>
-        <p><em>Sizes: fa-xs, fa-sm, default, fa-lg, fa-xl, fa-2x, fa-3x</em></p>
-        
-        <h2>Animation Tests</h2>
-        <div class="icon-test">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Spinning - <span class="code">&lt;i class="fas fa-spinner fa-spin"&gt;&lt;/i&gt;</span></span>
-        </div>
-        
-        <div class="icon-test">
-            <i class="fas fa-heart fa-beat"></i>
-            <span>Beating - <span class="code">&lt;i class="fas fa-heart fa-beat"&gt;&lt;/i&gt;</span></span>
-        </div>
-        
-        <h2>Quick Test Area</h2>
-        <div style="border: 2px dashed #ccc; padding: 20px; margin: 20px 0; min-height: 100px;">
-            <p><strong>Test your own icons here:</strong></p>
-            <p>Add your icon HTML below this line...</p>
-            <!-- Add your test icons here -->
-            
-        </div>
-        
-        <div style="margin-top: 30px; padding: 15px; background: #e9ecef; border-radius: 5px; font-size: 14px;">
-            <strong>Instructions:</strong><br>
-            1. Replace "path/to/your/fontawesome.js" in the &lt;head&gt; section with your actual Font Awesome JS file path<br>
-            2. If icons don't show up, check the browser console for errors<br>
-            3. Use the test area above to try your own icon codes<br>
-            4. You can also uncomment the CDN line to compare with the official version
+
+        <div class="content">
+            <div class="upload-section" id="dropZone">
+                <div class="upload-content">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Drag & drop your fontawesome-custom.js file here</div>
+                    <div class="upload-subtext">or click to browse</div>
+                </div>
+                <input type="file" id="fileInput" accept=".js" style="display: none;">
+            </div>
+
+            <div class="stats" id="statsSection">
+                <div class="stat">
+                    <div class="stat-number" id="totalIcons">0</div>
+                    <div class="stat-label">Working Icons</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="familyCount">0</div>
+                    <div class="stat-label">Font Families</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="status">Drop a file to start</div>
+                    <div class="stat-label">Status</div>
+                </div>
+            </div>
+
+            <div class="icons-container">
+                <div id="iconsDisplay"></div>
+            </div>
         </div>
     </div>
+
+    <script>
+        let fontAwesomeContent = '';
+        let allIconsFromFile = [];
+
+        // Set up drag and drop
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            const statusEl = document.getElementById('status');
+            
+            if (!file.name.endsWith('.js')) {
+                alert('Please upload a JavaScript (.js) file');
+                return;
+            }
+
+            statusEl.textContent = 'Reading file...';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                fontAwesomeContent = e.target.result;
+                
+                // Wait 1 second then process
+                setTimeout(() => {
+                    processFile();
+                }, 1000);
+            };
+            reader.readAsText(file);
+        }
+
+        function processFile() {
+            const statusEl = document.getElementById('status');
+            
+            try {
+                statusEl.textContent = 'Parsing icons...';
+                
+                // Parse all icons from the file using your server logic
+                const parseResult = parseIconsFromJS(fontAwesomeContent);
+                allIconsFromFile = parseResult.icons;
+                
+                console.log(`Parsed ${allIconsFromFile.length} icons from file`);
+                
+                // Inject the Font Awesome script
+                statusEl.textContent = 'Loading Font Awesome...';
+                injectFontAwesome();
+                
+                // Wait for Font Awesome to load, then test icons
+                setTimeout(() => {
+                    testParsedIcons();
+                }, 1000);
+                
+            } catch (error) {
+                console.error('Error processing file:', error);
+                statusEl.textContent = 'Error parsing file';
+                document.getElementById('iconsDisplay').innerHTML = '<div style="color: red; text-align: center;">Error parsing the Font Awesome file</div>';
+            }
+        }
+
+        function parseIconsFromJS(content) {
+            const icons = [];
+            const families = {};
+            
+            // More robust IIFE splitting - look for the complete IIFE pattern
+            const iifePattern = /\(function \(\) \{\s*'use strict';([\s\S]*?)\}\(\)\);/g;
+            let iifeMatch;
+            
+            console.log('Starting to parse Font Awesome file...');
+            
+            while ((iifeMatch = iifePattern.exec(content)) !== null) {
+                const iifeContent = iifeMatch[1];
+                
+                // Find the bunker call to determine family prefix
+                const bunkerMatch = iifeContent.match(/bunker\(\(\) => \{\s*defineIcons\('([^']+)'/);
+                if (!bunkerMatch) {
+                    console.log('Skipping IIFE block without defineIcons call');
+                    continue;
+                }
+                
+                const familyPrefix = bunkerMatch[1];
+                console.log(`Processing family: ${familyPrefix}`);
+                
+                // Extract icons object from this block
+                const iconsObjectMatch = iifeContent.match(/var icons = \{([\s\S]*?)\};/);
+                if (!iconsObjectMatch) {
+                    console.log(`No icons object found in ${familyPrefix} family`);
+                    families[familyPrefix] = [];
+                    continue;
+                }
+                
+                const iconsContent = iconsObjectMatch[1].trim();
+                
+                if (!iconsContent || iconsContent === '') {
+                    console.log(`Empty icons object in ${familyPrefix} family`);
+                    families[familyPrefix] = [];
+                    continue;
+                }
+                
+                // Parse individual icons in this family
+                const iconPattern = /"([a-z0-9-]+)":\s*\[\s*(\d+),\s*(\d+),\s*(?:\[[^\]]*\]|\[\]),\s*"([^"]+)",\s*"([^"]*)"\s*\]/g;
+                
+                let match;
+                const familyIcons = [];
+                
+                while ((match = iconPattern.exec(iconsContent)) !== null) {
+                    const iconName = match[1];
+                    const width = parseInt(match[2]);
+                    const height = parseInt(match[3]);
+                    const unicode = match[4];
+                    const svgPath = match[5];
+                    
+                    if (iconName && unicode) {
+                        const iconData = {
+                            name: iconName,
+                            unicode: unicode,
+                            displayName: `${iconName} (${familyPrefix})`,
+                            width: width,
+                            height: height,
+                            svgPath: svgPath,
+                            family: familyPrefix
+                        };
+                        
+                        icons.push(iconData);
+                        familyIcons.push(iconData);
+                    }
+                }
+                
+                families[familyPrefix] = familyIcons;
+                console.log(`Found ${familyIcons.length} icons in ${familyPrefix} family`);
+            }
+
+            console.log(`Total found: ${icons.length} icons across ${Object.keys(families).length} families`);
+            console.log('Families:', Object.keys(families));
+            
+            return {
+                icons: icons.sort((a, b) => a.displayName.localeCompare(b.displayName)),
+                families: families
+            };
+        }
+
+        function injectFontAwesome() {
+            // Remove any existing Font Awesome scripts
+            const existingScripts = document.querySelectorAll('script[data-fontawesome]');
+            existingScripts.forEach(script => script.remove());
+            
+            // Create a new script element with the Font Awesome content
+            const script = document.createElement('script');
+            script.setAttribute('data-fontawesome', 'true');
+            script.textContent = fontAwesomeContent;
+            document.head.appendChild(script);
+            
+            console.log('Font Awesome script injected');
+        }
+
+        function testParsedIcons() {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = 'Testing icons...';
+            
+            const workingIcons = [];
+            const iconsByFamily = {};
+            
+            console.log(`Testing ${allIconsFromFile.length} icons from file...`);
+            
+            // Test each icon from the parsed file
+            allIconsFromFile.forEach(icon => {
+                if (testIconExists(icon.family, icon.name)) {
+                    workingIcons.push(icon);
+                    
+                    if (!iconsByFamily[icon.family]) {
+                        iconsByFamily[icon.family] = [];
+                    }
+                    iconsByFamily[icon.family].push(icon);
+                    
+                    console.log(`✓ ${icon.family} fa-${icon.name} works`);
+                } else {
+                    console.log(`✗ ${icon.family} fa-${icon.name} doesn't work`);
+                }
+            });
+            
+            console.log(`${workingIcons.length} out of ${allIconsFromFile.length} icons are working`);
+            
+            // Display working icons
+            displayIcons(iconsByFamily);
+            
+            // Update stats
+            document.getElementById('totalIcons').textContent = workingIcons.length;
+            document.getElementById('familyCount').textContent = Object.keys(iconsByFamily).length;
+            
+            if (workingIcons.length > 0) {
+                statusEl.textContent = 'Ready';
+                
+                // Hide upload section and stats after successful loading
+                setTimeout(() => {
+                    hideUploadAndStats();
+                }, 1000);
+            } else {
+                statusEl.textContent = 'No working icons found';
+            }
+        }
+
+        function hideUploadAndStats() {
+            const uploadSection = document.getElementById('dropZone');
+            const statsSection = document.getElementById('statsSection');
+            
+            // Add fade out animation
+            uploadSection.style.opacity = '0';
+            statsSection.style.opacity = '0';
+            uploadSection.style.transform = 'translateY(-20px)';
+            statsSection.style.transform = 'translateY(-20px)';
+            
+            // Hide after animation
+            setTimeout(() => {
+                uploadSection.style.display = 'none';
+                statsSection.style.display = 'none';
+            }, 300);
+        }
+
+        function testIconExists(family, iconName) {
+            try {
+                // Create a test element
+                const testEl = document.createElement('i');
+                testEl.className = `${family} fa-${iconName}`;
+                testEl.style.position = 'absolute';
+                testEl.style.left = '-9999px';
+                testEl.style.fontSize = '16px';
+                
+                document.body.appendChild(testEl);
+                
+                // Check if the icon has been rendered
+                const computed = window.getComputedStyle(testEl);
+                const hasContent = computed.getPropertyValue('content') !== 'none' && computed.getPropertyValue('content') !== '';
+                const hasFont = computed.getPropertyValue('font-family').includes('Font Awesome') || 
+                               computed.getPropertyValue('font-family').includes('FontAwesome');
+                
+                document.body.removeChild(testEl);
+                
+                return hasContent || hasFont;
+                
+            } catch (error) {
+                return false;
+            }
+        }
+
+        function displayIcons(iconsByFamily) {
+            const iconsDisplay = document.getElementById('iconsDisplay');
+            iconsDisplay.innerHTML = '';
+            
+            // Count total icons
+            let totalIcons = 0;
+            for (const family in iconsByFamily) {
+                totalIcons += iconsByFamily[family].length;
+            }
+            
+            console.log(`Displaying ${totalIcons} icons in batches...`);
+            
+            // Create sections for each family first
+            const familySections = {};
+            for (const family in iconsByFamily) {
+                if (iconsByFamily[family].length === 0) continue;
+                
+                const familySection = document.createElement('div');
+                familySection.className = 'family-section';
+                familySection.setAttribute('data-family', family);
+                
+                const familyHeader = document.createElement('div');
+                familyHeader.className = 'family-header';
+                familyHeader.onclick = () => toggleFamily(family);
+                
+                const badgeClass = family;
+                const familyDisplayName = family.toUpperCase();
+                
+                familyHeader.innerHTML = `
+                    <div class="family-info">
+                        <div class="family-badge ${badgeClass}">${familyDisplayName}</div>
+                        <div class="family-title">Font Family: ${family}</div>
+                        <div class="family-count">(${iconsByFamily[family].length} icons)</div>
+                    </div>
+                    <div class="collapse-icon">▼</div>
+                `;
+                
+                const iconsGrid = document.createElement('div');
+                iconsGrid.className = 'family-icons';
+                iconsGrid.id = `grid-${family}`;
+                
+                familySection.appendChild(familyHeader);
+                familySection.appendChild(iconsGrid);
+                iconsDisplay.appendChild(familySection);
+                
+                familySections[family] = iconsGrid;
+            }
+            
+            // Add toggle function to global scope
+            window.toggleFamily = function(family) {
+                const familySection = document.querySelector(`[data-family="${family}"]`);
+                if (familySection) {
+                    familySection.classList.toggle('collapsed');
+                }
+            };
+            
+            // Render icons in batches
+            const batchSize = 50; // Render 50 icons at a time
+            let currentBatch = 0;
+            const allIcons = [];
+            
+            // Flatten all icons with family info
+            for (const family in iconsByFamily) {
+                iconsByFamily[family].forEach(icon => {
+                    allIcons.push({ icon, family });
+                });
+            }
+            
+            function renderNextBatch() {
+                const statusEl = document.getElementById('status');
+                const start = currentBatch * batchSize;
+                const end = Math.min(start + batchSize, allIcons.length);
+                
+                statusEl.textContent = `Rendering icons... (${end}/${allIcons.length})`;
+                
+                for (let i = start; i < end; i++) {
+                    const { icon, family } = allIcons[i];
+                    const iconItem = createIconElement(icon, family);
+                    familySections[family].appendChild(iconItem);
+                }
+                
+                currentBatch++;
+                
+                if (end < allIcons.length) {
+                    // Continue with next batch after a small delay
+                    setTimeout(renderNextBatch, 10);
+                } else {
+                    // Finished rendering
+                    statusEl.textContent = 'Ready';
+                    console.log('Finished rendering all icons');
+                }
+            }
+            
+            // Start rendering
+            renderNextBatch();
+        }
+
+        function createIconElement(icon, family) {
+            const iconItem = document.createElement('div');
+            iconItem.className = 'icon-item';
+            // Remove click functionality - just for display
+            
+            const iconPreview = document.createElement('div');
+            iconPreview.className = 'icon-preview';
+            iconPreview.innerHTML = `<i class="${family} fa-${icon.name}" style="font-size: 24px;"></i>`;
+            
+            const iconName = document.createElement('span');
+            iconName.className = 'icon-name';
+            iconName.textContent = icon.name;
+            
+            iconItem.appendChild(iconPreview);
+            iconItem.appendChild(iconName);
+            
+            return iconItem;
+        }
+
+        function getFamilyColor(family) {
+            // Not needed anymore with new styling
+            return '#333';
+        }
+    </script>
+
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --dark-glass: rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --text-muted: #718096;
+            --border-light: rgba(226, 232, 240, 0.8);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --shadow-xl: 0 35px 60px -12px rgba(0, 0, 0, 0.3);
+            --border-radius: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+        }
+
+        .header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: rotate 20s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 800;
+            margin-bottom: 15px;
+            letter-spacing: -0.02em;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 2;
+        }
+
+        .header p {
+            opacity: 0.95;
+            font-size: 1.2rem;
+            font-weight: 400;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+            position: relative;
+            z-index: 2;
+        }
+
+        .content {
+            padding: 40px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.9) 100%);
+        }
+
+        .upload-section {
+            text-align: center;
+            padding: 60px 40px;
+            border: 3px dashed var(--border-light);
+            border-radius: var(--border-radius);
+            margin-bottom: 40px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .upload-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.5s;
+        }
+
+        .upload-section:hover::before {
+            left: 100%;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .upload-section.dragover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.02);
+        }
+
+        .upload-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.7;
+        }
+
+        .upload-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+            transition: var(--transition);
+        }
+
+        .stat {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+        }
+
+        .stat:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .icons-container {
+            /* No margin since we're hiding the stats */
+        }
+
+        .family-section {
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .family-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 25px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            cursor: pointer;
+            transition: var(--transition);
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .family-header:hover {
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .family-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .family-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .family-badge.fab { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+        .family-badge.fas { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+        .family-badge.far { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+        .family-badge.fal { background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%); }
+        .family-badge.fat { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+        .family-badge.fad { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+        .family-badge.custom { background: linear-gradient(135deg, #9c27b0 0%, #673ab7 100%); }
+
+        .family-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .family-count {
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-left: 10px;
+        }
+
+        .collapse-icon {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+
+        .family-section.collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .family-icons {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(var(--icon-size, 180px), 1fr));
+            gap: 20px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.5);
+            transition: var(--transition);
+        }
+
+        .family-section.collapsed .family-icons {
+            display: none;
+        }
+
+        .icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--border-light);
+            border-radius: 15px;
+            transition: var(--transition);
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .icon-item:hover {
+            border-color: #667eea;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.15);
+        }
+
+        .icon-preview {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            font-size: 20px;
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+        }
+
+        .icon-preview svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .icon-preview i {
+            font-size: 24px;
+        }
+
+        .icon-name {
+            font-family: 'SF Mono', 'Monaco', 'Cascadia Code', monospace;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 25px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+
+            .upload-section {
+                padding: 40px 20px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .family-icons {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+                padding: 20px;
+                gap: 15px;
+            }
+
+            .icon-item {
+                padding: 15px;
+            }
+
+            .icon-preview {
+                width: 40px;
+                height: 40px;
+            }
+
+            .icon-preview i {
+                font-size: 20px;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(226, 232, 240, 0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--primary-gradient);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6b5b95 100%);
+        }
+    </style>
 </body>
 </html>

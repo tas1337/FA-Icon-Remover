@@ -253,6 +253,9 @@ body {
 .control-icon {
     font-size: 1.5rem;
     transition: var(--transition);
+    left: 33px;
+    position: relative;
+    top: -1px;
 }
 
 .control-text {
@@ -272,6 +275,9 @@ body {
 
 .floating-control-btn.panel-open .control-icon {
     transform: rotate(180deg);
+    left: 0px;
+    position: relative;
+    top: 0px;
 }
 
 /* Control Panel */
@@ -652,65 +658,6 @@ body {
     margin-top: 15px;
 }
 
-/* Mobile Responsive for Control Panel */
-@media (max-width: 768px) {
-    .floating-control-btn {
-        bottom: 20px;
-        right: 20px;
-        width: 55px;
-        height: 55px;
-    }
-    
-    .floating-control-btn.panel-open {
-        width: 110px;
-    }
-    
-    .control-icon {
-        font-size: 1.3rem;
-    }
-    
-    .control-text {
-        font-size: 0.8rem;
-    }
-    
-    .control-panel {
-        bottom: 85px;
-        right: 15px;
-        left: 15px;
-        width: auto;
-        max-height: 75vh;
-    }
-    
-    .control-panel-content {
-        padding: 20px;
-    }
-    
-    .stats-popup {
-        grid-template-columns: 1fr;
-        gap: 10px;
-    }
-    
-    .control-panel .bulk-actions {
-        grid-template-columns: 1fr;
-    }
-    
-    .control-panel .size-control {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    
-    .control-panel .preview-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-        gap: 15px;
-    }
-
-    .control-panel .icon-preview-large {
-        margin: 0 auto;
-    }
-}
-
 /* Buttons */
 .btn {
     padding: 14px 28px;
@@ -750,6 +697,11 @@ body {
 
 .btn-load {
     background: linear-gradient(135deg, #5f27cd 0%, #341f97 100%);
+    color: white;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffa502 0%, #ff6348 100%);
     color: white;
 }
 
@@ -899,7 +851,6 @@ body {
 }
 
 .icon-preview {
-
     display: flex;
     align-items: center;
     justify-content: center;
@@ -991,6 +942,66 @@ body {
     display: none;
 }
 
+/* Mobile Responsive for Control Panel */
+@media (max-width: 768px) {
+    .floating-control-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 55px;
+        height: 55px;
+    }
+    
+    .floating-control-btn.panel-open {
+        width: 110px;
+    }
+    
+    .control-icon {
+        font-size: 1.3rem;
+    }
+    
+    .control-text {
+        font-size: 0.8rem;
+    }
+    
+    .control-panel {
+        bottom: 85px;
+        right: 15px;
+        left: 15px;
+        width: auto;
+        max-height: 75vh;
+    }
+    
+    .control-panel-content {
+        padding: 20px;
+    }
+    
+    .stats-popup {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .control-panel .bulk-actions {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .control-panel .size-control {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    
+    .control-panel .preview-content {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 15px;
+    }
+
+    .control-panel .icon-preview-large {
+        margin: 0 auto;
+    }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .content {
@@ -1024,447 +1035,4 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(135deg, #5a6fd8 0%, #6b5b95 100%);
-}
-
-/* Floating Control Button */
-.floating-control-btn {
-    position: fixed;
-    bottom: 25px;
-    right: 25px;
-    width: 60px;
-    height: 60px;
-    background: var(--primary-gradient);
-    border-radius: 50%;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    transition: var(--transition);
-    overflow: hidden;
-}
-
-.floating-control-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
-}
-
-.floating-control-btn.panel-open {
-    width: 120px;
-    border-radius: 30px;
-}
-
-.control-icon {
-    font-size: 1.5rem;
-    transition: var(--transition);
-    left: 33px;
-    position: relative;
-    top: -1px;
-}
-
-.control-text {
-    color: white;
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-left: 8px;
-    opacity: 0;
-    transform: translateX(-10px);
-    transition: var(--transition);
-}
-
-.floating-control-btn.panel-open .control-text {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.floating-control-btn.panel-open .control-icon {
-    transform: rotate(180deg);
-    left: 0px;
-    position: relative;
-    top: 0px;
-}
-
-/* Control Panel */
-.control-panel {
-    position: fixed;
-    bottom: 100px;
-    right: 25px;
-    width: 420px;
-    max-height: 80vh;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: 20px;
-    box-shadow: var(--shadow-xl);
-    border: 1px solid var(--glass-border);
-    z-index: 999;
-    transform: translateY(100%) scale(0.8);
-    opacity: 0;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
-}
-
-.control-panel.show {
-    transform: translateY(0) scale(1);
-    opacity: 1;
-}
-
-.control-panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px 25px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    border-bottom: 1px solid var(--border-light);
-}
-
-.control-panel-header h3 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.close-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    border: none;
-    background: rgba(102, 126, 234, 0.1);
-    color: var(--text-secondary);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-    font-weight: bold;
-    transition: var(--transition);
-}
-
-.close-btn:hover {
-    background: rgba(102, 126, 234, 0.2);
-    transform: scale(1.1);
-}
-
-.control-panel-content {
-    padding: 25px;
-    max-height: calc(80vh - 80px);
-    overflow-y: auto;
-}
-
-/* Updated Control Styles for Panel */
-.control-panel .search-container {
-    margin-bottom: 25px;
-    position: relative;
-}
-
-.control-panel .search-suggestions {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid var(--border-light);
-    border-radius: 15px;
-    box-shadow: var(--shadow-lg);
-    z-index: 1000;
-    max-height: 200px;
-    overflow-y: auto;
-    display: none;
-    margin-top: 5px;
-}
-
-.control-panel .suggestion-item {
-    padding: 12px 16px;
-    cursor: pointer;
-    transition: var(--transition);
-    font-size: 0.9rem;
-    font-weight: 500;
-    border-bottom: 1px solid rgba(226, 232, 240, 0.5);
-}
-
-.control-panel .suggestion-item:last-child {
-    border-bottom: none;
-}
-
-.control-panel .suggestion-item:hover {
-    background: rgba(102, 126, 234, 0.1);
-    color: #667eea;
-}
-
-.control-panel .search-help {
-    margin-top: 10px;
-    color: var(--text-muted);
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.control-panel .size-label {
-    font-weight: 600;
-    color: var(--text-primary);
-    font-size: 0.85rem;
-    white-space: nowrap;
-}
-
-.control-panel .size-slider {
-    flex: 1;
-    height: 6px;
-    border-radius: 3px;
-    background: var(--border-light);
-    outline: none;
-    -webkit-appearance: none;
-    appearance: none;
-    cursor: pointer;
-}
-
-.control-panel .size-slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--primary-gradient);
-    cursor: pointer;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    transition: var(--transition);
-}
-
-.control-panel .size-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.control-panel .size-slider::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background: var(--primary-gradient);
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-    transition: var(--transition);
-}
-
-.control-panel .size-slider::-moz-range-thumb:hover {
-    transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.control-panel .size-value {
-    font-weight: 600;
-    color: var(--text-secondary);
-    font-size: 0.85rem;
-    min-width: 55px;
-    text-align: right;
-}
-
-.control-panel .search-box {
-    width: 100%;
-    padding: 14px 18px;
-    border: 2px solid var(--border-light);
-    border-radius: 15px;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: var(--transition);
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-}
-
-.control-panel .search-box:focus {
-    outline: none;
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-    background: white;
-}
-
-.control-panel .size-control {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    padding: 15px 20px;
-    border-radius: 15px;
-    border: 1px solid var(--border-light);
-    margin-bottom: 25px;
-}
-
-.control-panel .bulk-actions {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-bottom: 25px;
-}
-
-.control-panel .btn {
-    padding: 12px 16px;
-    font-size: 0.85rem;
-    border-radius: 12px;
-}
-
-.control-panel .custom-icon-section {
-    background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    border-radius: 15px;
-    padding: 20px;
-    border: 1px solid var(--border-light);
-}
-
-.control-panel .custom-icon-header h3 {
-    font-size: 1.1rem;
-    margin-bottom: 8px;
-}
-
-.control-panel .custom-icon-header p {
-    font-size: 0.85rem;
-    margin-bottom: 15px;
-}
-
-.control-panel .svg-upload-area {
-    padding: 30px 20px;
-    margin-top: 15px;
-    border: 2px dashed var(--border-light);
-    border-radius: 12px;
-    text-align: center;
-    transition: var(--transition);
-    background: rgba(255, 255, 255, 0.5);
-    cursor: pointer;
-}
-
-.control-panel .svg-upload-area:hover,
-.control-panel .svg-upload-area.dragover {
-    border-color: #9c27b0;
-    background: rgba(156, 39, 176, 0.1);
-    transform: translateY(-2px);
-}
-
-.control-panel .svg-preview-section {
-    margin-top: 20px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    border: 1px solid var(--border-light);
-}
-
-.control-panel .preview-content {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 20px;
-    align-items: start;
-}
-
-.control-panel .icon-preview-large {
-    width: 80px;
-    height: 80px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--border-light);
-}
-
-.control-panel .icon-preview-large svg {
-    width: 40px;
-    height: 40px;
-    color: var(--text-primary);
-}
-
-.control-panel .form-field {
-    margin-bottom: 15px;
-}
-
-.control-panel .form-field label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: var(--text-primary);
-    font-size: 0.9rem;
-}
-
-.control-panel .form-field input {
-    width: 100%;
-    padding: 10px 14px;
-    border: 2px solid var(--border-light);
-    border-radius: 10px;
-    font-size: 0.9rem;
-    transition: var(--transition);
-    background: rgba(255, 255, 255, 0.8);
-}
-
-.control-panel .form-field input:focus {
-    outline: none;
-    border-color: #9c27b0;
-    box-shadow: 0 0 0 3px rgba(156, 39, 176, 0.1);
-}
-
-.control-panel .form-field small {
-    display: block;
-    margin-top: 4px;
-    color: var(--text-muted);
-    font-size: 0.8rem;
-}
-
-.control-panel .preview-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 15px;
-}
-
-/* Mobile Responsive for Control Panel */
-@media (max-width: 768px) {
-    .floating-control-btn {
-        bottom: 20px;
-        right: 20px;
-        width: 55px;
-        height: 55px;
-    }
-    
-    .floating-control-btn.panel-open {
-        width: 110px;
-    }
-    
-    .control-icon {
-        font-size: 1.3rem;
-    }
-    
-    .control-text {
-        font-size: 0.8rem;
-    }
-    
-    .control-panel {
-        bottom: 85px;
-        right: 15px;
-        left: 15px;
-        width: auto;
-        max-height: 70vh;
-    }
-    
-    .control-panel-content {
-        padding: 20px;
-    }
-    
-    .control-panel .bulk-actions {
-        grid-template-columns: 1fr;
-    }
-    
-    .control-panel .size-control {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    
-    .control-panel .preview-content {
-        grid-template-columns: 1fr;
-        text-align: center;
-        gap: 15px;
-    }
-
-    .control-panel .icon-preview-large {
-        margin: 0 auto;
-    }
 }

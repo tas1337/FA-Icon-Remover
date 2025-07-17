@@ -78,6 +78,7 @@ let customContent = '';
 let currentFilteredIcons = [];
 let iconFamilies = {};
 let customIcons = []; // Store custom icons separately
+let currentFileName = ''; // Track current file name for contextual saves
 
 // File upload handling
 const uploadSection = document.getElementById('uploadSection');
@@ -131,11 +132,15 @@ async function handleFileUpload(file) {
             throw new Error(result.error);
         }
 
+        // Clear previous state when loading new file
         allIcons = result.icons;
         originalContent = result.originalContent;
         iconFamilies = result.families || {};
         selectedIconsSet.clear();
+        customIcons = []; // Clear custom icons for new file
         currentFilteredIcons = allIcons;
+        currentFileName = file.name; // Store current file name
+        customIconUploadSetup = false; // Reset custom icon upload setup
 
         console.log('Loaded icons:', allIcons.length);
         console.log('Families:', Object.keys(iconFamilies));
@@ -169,7 +174,7 @@ function showIcons() {
     setupSearch();
     setupCustomIconUpload(); // Initialize custom icon upload
     setupSizeSlider(); // Initialize size slider
-    loadSelectionsOnStartup(); // Auto-load saved selections
+    // Auto-load removed - user must manually load selections
 }
 
 function downloadCustomFile() {
@@ -221,7 +226,17 @@ function renderIcons(filteredIcons = allIcons) {
 
     // Group icons by family for better organization
     const iconsByFamily = {};
+    const seenIcons = new Set(); // Track icons to prevent duplicates within same family+name combo
+    
     filteredIcons.forEach(icon => {
+        // Check for duplicates using family+name combination (not just name)
+        const iconKey = `${icon.family}-${icon.name}`;
+        if (seenIcons.has(iconKey)) {
+            console.warn('Duplicate icon detected in rendering:', iconKey);
+            return; // Skip duplicate
+        }
+        seenIcons.add(iconKey);
+        
         if (!iconsByFamily[icon.family]) {
             iconsByFamily[icon.family] = [];
         }
@@ -507,10 +522,20 @@ async function generateCustomFile() {
 
 // Custom Icon Functions
 let currentUploadedSvg = null;
+let customIconUploadSetup = false; // Prevent duplicate setup
 
 function setupCustomIconUpload() {
+    // Prevent duplicate setup
+    if (customIconUploadSetup) {
+        return;
+    }
+    
     const uploadArea = document.getElementById('svgUploadArea');
     const fileInput = document.getElementById('svgFileInput');
+    
+    if (!uploadArea || !fileInput) {
+        return;
+    }
     
     // Click to upload
     uploadArea.addEventListener('click', () => {
@@ -546,6 +571,8 @@ function setupCustomIconUpload() {
             alert('Please upload an SVG file');
         }
     });
+    
+    customIconUploadSetup = true; // Mark as setup
 }
 
 async function handleSvgFile(file) {
@@ -700,6 +727,7 @@ function addUploadedIcon() {
     }
     
     const name = document.getElementById('customIconName').value.trim();
+    const targetFamily = 'fas'; // Custom icons go to fas family
     
     // Validate name
     if (!name) {
@@ -707,9 +735,18 @@ function addUploadedIcon() {
         return;
     }
     
-    const nameError = validateIconName(name);
+    const nameError = validateIconName(name, targetFamily);
     if (nameError) {
         alert(nameError);
+        return;
+    }
+    
+    // Check if icon already exists in the same family (prevent duplicates)
+    const existingIcon = allIcons.find(icon => 
+        icon.name === name && icon.family === targetFamily
+    );
+    if (existingIcon) {
+        alert(`An icon with this name already exists in the ${targetFamily} family`);
         return;
     }
     
@@ -717,27 +754,40 @@ function addUploadedIcon() {
     const customIcon = {
         name: name,
         unicode: generateCustomUnicode(),
-        displayName: `${name} (fas - custom)`,
+        displayName: `${name} (${targetFamily} - custom)`,
         width: currentUploadedSvg.width,
         height: currentUploadedSvg.height,
         svgPath: currentUploadedSvg.pathData,
-        family: 'fas',
+        family: targetFamily,
         isCustom: true
     };
     
-    // Add to arrays
-    customIcons.push(customIcon);
-    allIcons.push(customIcon);
+    // Add to arrays safely (prevent duplicates)
+    const addedToCustom = addIconToArraySafely(customIcons, customIcon);
+    const addedToAll = addIconToArraySafely(allIcons, customIcon);
+    
+    if (!addedToCustom || !addedToAll) {
+        alert('Error: Icon already exists in arrays');
+        return;
+    }
+    
     selectedIconsSet.add(customIcon.name);
     
-    // Update families
-    if (!iconFamilies['fas']) {
-        iconFamilies['fas'] = [];
+    // Update families - iconFamilies should reference the same objects as allIcons
+    if (!iconFamilies[targetFamily]) {
+        iconFamilies[targetFamily] = [];
     }
-    iconFamilies['fas'].push(customIcon);
+    // Add safely to family array too
+    addIconToArraySafely(iconFamilies[targetFamily], customIcon);
     
     // Update filtered icons
     updateFilteredIcons();
+    
+    // Check for duplicates (debugging)
+    const duplicates = checkForDuplicates();
+    if (duplicates.length > 0) {
+        console.error('Duplicates detected after adding custom icon!', duplicates);
+    }
     
     // Re-render and update stats
     renderIcons(currentFilteredIcons);
@@ -747,9 +797,12 @@ function addUploadedIcon() {
     cancelUpload();
     
     // Success message
-    alert(`Custom icon "${name}" added successfully!`);
+    showNotification(`✅ Custom icon "${name}" added successfully to ${targetFamily} family!`, 'success');
     
     console.log('Added custom icon:', customIcon);
+    console.log('Total icons now:', allIcons.length);
+    console.log('Custom icons now:', customIcons.length);
+    console.log(`${targetFamily} family icons now:`, iconFamilies[targetFamily]?.length || 0);
 }
 
 function updateFilteredIcons() {
@@ -769,58 +822,127 @@ function updateFilteredIcons() {
     }
 }
 
+// Helper function to prevent duplicates in arrays
+function addIconToArraySafely(array, icon) {
+    const exists = array.some(existingIcon => 
+        existingIcon.name === icon.name && existingIcon.family === icon.family
+    );
+    if (!exists) {
+        array.push(icon);
+        return true;
+    }
+    console.warn('Attempted to add duplicate icon:', `${icon.family}-${icon.name}`);
+    return false;
+}
+
+// Debug function to check for duplicates
+function checkForDuplicates() {
+    const allKeys = allIcons.map(icon => `${icon.family}-${icon.name}`);
+    const duplicateKeys = allKeys.filter((key, index) => allKeys.indexOf(key) !== index);
+    
+    if (duplicateKeys.length > 0) {
+        console.error('Duplicate icons found in allIcons (same family+name):', duplicateKeys);
+    } else {
+        console.log('No duplicate family+name combinations found in allIcons');
+    }
+    
+    // Also check for cross-family duplicates (same name, different families)
+    const nameGroups = {};
+    allIcons.forEach(icon => {
+        if (!nameGroups[icon.name]) {
+            nameGroups[icon.name] = [];
+        }
+        nameGroups[icon.name].push(icon.family);
+    });
+    
+    const crossFamilyDuplicates = Object.entries(nameGroups)
+        .filter(([name, families]) => families.length > 1)
+        .map(([name, families]) => `${name} (${families.join(', ')})`);
+    
+    if (crossFamilyDuplicates.length > 0) {
+        console.log('Cross-family duplicates (same name, different families):', crossFamilyDuplicates);
+    }
+    
+    return duplicateKeys;
+}
+
 function generateCustomUnicode() {
     // Generate a unique unicode in the private use area (E000-F8FF)
-    const usedUnicodes = new Set([
-        ...allIcons.map(icon => icon.unicode),
-        ...customIcons.map(icon => icon.unicode)
-    ]);
+    const usedUnicodes = new Set();
+    
+    // Collect all used unicodes
+    allIcons.forEach(icon => {
+        if (icon.unicode) {
+            usedUnicodes.add(icon.unicode);
+        }
+    });
+    
+    customIcons.forEach(icon => {
+        if (icon.unicode) {
+            usedUnicodes.add(icon.unicode);
+        }
+    });
     
     // Start from E000 and find the first available unicode
     for (let i = 0xE000; i <= 0xF8FF; i++) {
         const unicode = i.toString(16).toUpperCase();
         if (!usedUnicodes.has(unicode)) {
+            console.log('Generated unicode:', unicode);
             return unicode;
         }
     }
     
     // Fallback to random if all are taken (unlikely)
-    return Math.floor(Math.random() * 0x1000 + 0xE000).toString(16).toUpperCase();
+    const fallback = Math.floor(Math.random() * 0x1000 + 0xE000).toString(16).toUpperCase();
+    console.warn('Using fallback unicode:', fallback);
+    return fallback;
 }
 
-function validateIconName(name) {
+function validateIconName(name, targetFamily = 'fas') {
     // Check if name is valid (lowercase, numbers, hyphens only)
     if (!/^[a-z0-9-]+$/.test(name)) {
         return 'Icon name can only contain lowercase letters, numbers, and hyphens';
     }
     
-    // Check if name already exists
-    const existingNames = [
-        ...allIcons.map(icon => icon.name),
-        ...customIcons.map(icon => icon.name)
-    ];
+    // Check if name already exists in the same family (not just any family)
+    const existingInFamily = allIcons.some(icon => 
+        icon.name === name && icon.family === targetFamily
+    );
     
-    if (existingNames.includes(name)) {
-        return 'An icon with this name already exists';
+    if (existingInFamily) {
+        console.log(`Duplicate icon name detected in ${targetFamily} family:`, name);
+        return `An icon with this name already exists in the ${targetFamily} family`;
+    }
+    
+    // Also check custom icons for the same family
+    const existingInCustom = customIcons.some(icon => 
+        icon.name === name && icon.family === targetFamily
+    );
+    
+    if (existingInCustom) {
+        console.log(`Duplicate custom icon name detected in ${targetFamily} family:`, name);
+        return `A custom icon with this name already exists in the ${targetFamily} family`;
     }
     
     return null;
 }
 
-// Save/Load Functionality
+// Save/Load Functionality - FIXED VERSION
 function saveSelections() {
     try {
         const saveData = {
             selectedIcons: Array.from(selectedIconsSet),
             customIcons: customIcons,
+            fileName: currentFileName, // Save context of which file this is for
             timestamp: new Date().toISOString(),
-            version: '1.0'
+            totalIcons: allIcons.length, // Save total for validation
+            version: '1.1'
         };
         
         localStorage.setItem('fontawesome-customizer-selections', JSON.stringify(saveData));
         
         // Show success feedback
-        showNotification('✅ Selections saved successfully!', 'success');
+        showNotification(`✅ Saved ${selectedIconsSet.size} selections + ${customIcons.length} custom icons for "${currentFileName}"`, 'success');
         
         console.log('Saved selections:', saveData);
         
@@ -846,45 +968,83 @@ function loadSelections() {
             throw new Error('Invalid save data format');
         }
         
+        // Show confirmation dialog with context info
+        const saveDate = saveData.timestamp ? new Date(saveData.timestamp).toLocaleDateString() : 'Unknown date';
+        const saveFileName = saveData.fileName || 'Unknown file';
+        const currentFileContext = currentFileName || 'Current file';
+        
+        let confirmMessage = `Load saved selections from ${saveDate}?\n\n`;
+        confirmMessage += `Saved for: "${saveFileName}"\n`;
+        confirmMessage += `Current file: "${currentFileContext}"\n\n`;
+        confirmMessage += `• ${saveData.selectedIcons.length} selected icons\n`;
+        confirmMessage += `• ${saveData.customIcons?.length || 0} custom icons\n\n`;
+        
+        if (saveFileName !== currentFileName) {
+            confirmMessage += `⚠️ Warning: This was saved for a different file. Custom icons may not work correctly.`;
+        }
+        
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+        
         // Clear current selections
         selectedIconsSet.clear();
         
         // Load selected icons (only if they exist in current icon set)
         const availableIconNames = new Set(allIcons.map(icon => icon.name));
         let loadedCount = 0;
+        let skippedCount = 0;
         
         saveData.selectedIcons.forEach(iconName => {
             if (availableIconNames.has(iconName)) {
                 selectedIconsSet.add(iconName);
                 loadedCount++;
+            } else {
+                skippedCount++;
             }
         });
         
-        // Load custom icons if they exist and aren't already loaded
-        if (saveData.customIcons && Array.isArray(saveData.customIcons)) {
-            const existingCustomNames = new Set(customIcons.map(icon => icon.name));
-            let customLoadedCount = 0;
+        // Load custom icons with user confirmation if from different file
+        let customLoadedCount = 0;
+        if (saveData.customIcons && Array.isArray(saveData.customIcons) && saveData.customIcons.length > 0) {
+            let loadCustoms = true;
             
-            saveData.customIcons.forEach(customIcon => {
-                if (!existingCustomNames.has(customIcon.name)) {
-                    // Add to custom icons array
-                    customIcons.push(customIcon);
-                    allIcons.push(customIcon);
+            if (saveFileName !== currentFileName) {
+                loadCustoms = confirm(`Load ${saveData.customIcons.length} custom icons from different file?\n\nThese may not work correctly with the current Font Awesome file.`);
+            }
+            
+            if (loadCustoms) {
+                saveData.customIcons.forEach(customIcon => {
+                    // Check if icon already exists in the same family before adding
+                    const existsInCustom = customIcons.some(icon => 
+                        icon.name === customIcon.name && icon.family === customIcon.family
+                    );
+                    const existsInAll = allIcons.some(icon => 
+                        icon.name === customIcon.name && icon.family === customIcon.family
+                    );
                     
-                    // Update families
-                    if (!iconFamilies[customIcon.family]) {
-                        iconFamilies[customIcon.family] = [];
+                    if (!existsInCustom && !existsInAll) {
+                        // Add to custom icons array
+                        customIcons.push(customIcon);
+                        allIcons.push(customIcon);
+                        
+                        // Update families
+                        if (!iconFamilies[customIcon.family]) {
+                            iconFamilies[customIcon.family] = [];
+                        }
+                        iconFamilies[customIcon.family].push(customIcon);
+                        
+                        // Select the custom icon
+                        selectedIconsSet.add(customIcon.name);
+                        customLoadedCount++;
+                    } else {
+                        console.warn('Skipping duplicate custom icon:', `${customIcon.family}-${customIcon.name}`);
                     }
-                    iconFamilies[customIcon.family].push(customIcon);
-                    
-                    // Select the custom icon
-                    selectedIconsSet.add(customIcon.name);
-                    customLoadedCount++;
+                });
+                
+                if (customLoadedCount > 0) {
+                    updateFilteredIcons();
                 }
-            });
-            
-            if (customLoadedCount > 0) {
-                updateFilteredIcons();
             }
         }
         
@@ -892,11 +1052,23 @@ function loadSelections() {
         renderIcons(currentFilteredIcons);
         updateStats();
         
-        // Show success feedback
-        const saveDate = saveData.timestamp ? new Date(saveData.timestamp).toLocaleDateString() : 'Unknown date';
-        showNotification(`✅ Loaded ${loadedCount} selections from ${saveDate}`, 'success');
+        // Show detailed feedback
+        let message = `✅ Loaded ${loadedCount} selections`;
+        if (customLoadedCount > 0) {
+            message += ` + ${customLoadedCount} custom icons`;
+        }
+        if (skippedCount > 0) {
+            message += ` (${skippedCount} skipped - not in current file)`;
+        }
         
-        console.log('Loaded selections:', saveData);
+        showNotification(message, 'success');
+        
+        console.log('Loaded selections:', {
+            loaded: loadedCount,
+            skipped: skippedCount,
+            customLoaded: customLoadedCount,
+            saveData
+        });
         
     } catch (error) {
         console.error('Error loading selections:', error);
@@ -904,30 +1076,64 @@ function loadSelections() {
     }
 }
 
-function loadSelectionsOnStartup() {
-    // Auto-load selections when icons are first displayed
-    try {
-        const savedData = localStorage.getItem('fontawesome-customizer-selections');
-        if (savedData && allIcons.length > 0) {
-            // Small delay to ensure everything is rendered
-            setTimeout(() => {
-                loadSelections();
-            }, 100);
-        }
-    } catch (error) {
-        console.error('Error auto-loading selections:', error);
+// NEW RESET MEMORY FUNCTION
+function resetMemory() {
+    const savedData = localStorage.getItem('fontawesome-customizer-selections');
+    
+    if (!savedData) {
+        showNotification('📂 No saved data found to reset.', 'info');
+        return;
     }
-}
-
-function clearSavedSelections() {
-    if (confirm('Are you sure you want to clear all saved selections? This cannot be undone.')) {
-        try {
-            localStorage.removeItem('fontawesome-customizer-selections');
-            showNotification('🗑️ Saved selections cleared.', 'info');
-        } catch (error) {
-            console.error('Error clearing saved selections:', error);
-            showNotification('❌ Error clearing saved selections.', 'error');
+    
+    try {
+        const saveData = JSON.parse(savedData);
+        const saveDate = saveData.timestamp ? new Date(saveData.timestamp).toLocaleDateString() : 'Unknown date';
+        const saveFileName = saveData.fileName || 'Unknown file';
+        
+        const confirmMessage = `Are you sure you want to reset all saved memory?\n\nThis will permanently delete:\n• ${saveData.selectedIcons?.length || 0} selected icons\n• ${saveData.customIcons?.length || 0} custom icons\n• Saved for: "${saveFileName}" (${saveDate})\n\nThis action cannot be undone.`;
+        
+        if (!confirm(confirmMessage)) {
+            return;
         }
+        
+        localStorage.removeItem('fontawesome-customizer-selections');
+        
+        // Also clear current custom icons that came from saved data
+        const customIconsToRemove = customIcons.filter(icon => icon.isCustom);
+        customIconsToRemove.forEach(customIcon => {
+            // Remove from allIcons
+            const index = allIcons.findIndex(icon => icon.name === customIcon.name);
+            if (index !== -1) {
+                allIcons.splice(index, 1);
+            }
+            
+            // Remove from families
+            if (iconFamilies[customIcon.family]) {
+                const familyIndex = iconFamilies[customIcon.family].findIndex(icon => icon.name === customIcon.name);
+                if (familyIndex !== -1) {
+                    iconFamilies[customIcon.family].splice(familyIndex, 1);
+                }
+            }
+            
+            // Remove from selections
+            selectedIconsSet.delete(customIcon.name);
+        });
+        
+        // Clear custom icons array
+        customIcons = [];
+        
+        // Update filtered icons and re-render
+        updateFilteredIcons();
+        renderIcons(currentFilteredIcons);
+        updateStats();
+        
+        showNotification('🗑️ Memory reset successfully. All saved data cleared.', 'success');
+        
+    } catch (error) {
+        console.error('Error parsing saved data:', error);
+        // Still try to clear it
+        localStorage.removeItem('fontawesome-customizer-selections');
+        showNotification('🗑️ Memory reset (data was corrupted).', 'warning');
     }
 }
 
